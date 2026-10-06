@@ -1,0 +1,655 @@
+[
+  {
+    "id": "claim-health-cataract",
+    "kind": "claim",
+    "route": "Claim Check",
+    "policy_file": "OptimaLiteBrochure(6)-775316069816.pdf",
+    "bill_file": "health_cataract.pdf",
+    "policy_start_date": "2025-06-01",
+    "retrieval_query": "Phacoemulsification with intraocular lens",
+    "label": "waiting_period_context",
+    "anchors": [
+      {
+        "page": 11,
+        "anchor": "2 years exclusion for certain diseases like cataracts"
+      }
+    ],
+    "bill_document": {
+      "invoice_id": "H-001",
+      "provider": "Fictional Vision Clinic",
+      "service_date": "2026-05-20",
+      "description": "Phacoemulsification with intraocular lens",
+      "currency": "INR",
+      "amount": 48000
+    },
+    "expected_bill_fields": {
+      "procedure_or_diagnosis": {
+        "value": "Phacoemulsification with intraocular lens",
+        "page": 1,
+        "evidence": "Description: Phacoemulsification with intraocular lens"
+      },
+      "treatment_date": {
+        "value": "2026-05-20",
+        "page": 1,
+        "evidence": "Service date: 2026-05-20"
+      },
+      "amount": {
+        "value": 48000,
+        "page": 1,
+        "evidence": "Amount: INR 48000.00"
+      },
+      "currency": {
+        "value": "INR",
+        "page": 1,
+        "evidence": "Amount: INR 48000.00"
+      },
+      "hospital": {
+        "value": "Fictional Vision Clinic",
+        "page": 1,
+        "evidence": "Provider: Fictional Vision Clinic"
+      },
+      "network_type": {
+        "value": null,
+        "page": null,
+        "evidence": null
+      }
+    }
+  },
+  {
+    "id": "claim-health-ambulance",
+    "kind": "claim",
+    "route": "Claim Check",
+    "policy_file": "OptimaLiteBrochure(6)-775316069816.pdf",
+    "bill_file": "health_road_ambulance.pdf",
+    "retrieval_query": "road ambulance charges limit",
+    "label": "relevant_clause",
+    "anchors": [
+      {
+        "page": 5,
+        "anchor": "Covers road ambulance services fully up to the sum insured"
+      }
+    ],
+    "bill_document": {
+      "invoice_id": "H-002",
+      "provider": "Fictional City Hospital",
+      "service_date": "2026-04-11",
+      "description": "Emergency road ambulance transport",
+      "currency": "INR",
+      "amount": 6200
+    },
+    "expected_bill_fields": {
+      "procedure_or_diagnosis": {
+        "value": "Emergency road ambulance transport",
+        "page": 1,
+        "evidence": "Description: Emergency road ambulance transport"
+      },
+      "treatment_date": {
+        "value": "2026-04-11",
+        "page": 1,
+        "evidence": "Service date: 2026-04-11"
+      },
+      "amount": {
+        "value": 6200,
+        "page": 1,
+        "evidence": "Amount: INR 6200.00"
+      },
+      "currency": {
+        "value": "INR",
+        "page": 1,
+        "evidence": "Amount: INR 6200.00"
+      },
+      "hospital": {
+        "value": "Fictional City Hospital",
+        "page": 1,
+        "evidence": "Provider: Fictional City Hospital"
+      },
+      "network_type": {
+        "value": null,
+        "page": null,
+        "evidence": null
+      }
+    }
+  },
+  {
+    "id": "claim-health-air-ambulance",
+    "kind": "claim",
+    "route": "Claim Check",
+    "policy_file": "OptimaLiteBrochure(6)-775316069816.pdf",
+    "bill_file": "health_air_ambulance.pdf",
+    "retrieval_query": "air ambulance charges limit",
+    "label": "relevant_clause",
+    "anchors": [
+      {
+        "page": 5,
+        "anchor": "air ambulance charges up to `5 lakhs"
+      }
+    ],
+    "bill_document": {
+      "invoice_id": "H-003",
+      "provider": "Fictional Air Rescue",
+      "service_date": "2026-02-14",
+      "description": "Emergency air ambulance transport",
+      "currency": "INR",
+      "amount": 275000
+    },
+    "expected_bill_fields": {
+      "procedure_or_diagnosis": {
+        "value": "Emergency air ambulance transport",
+        "page": 1,
+        "evidence": "Description: Emergency air ambulance transport"
+      },
+      "treatment_date": {
+        "value": "2026-02-14",
+        "page": 1,
+        "evidence": "Service date: 2026-02-14"
+      },
+      "amount": {
+        "value": 275000,
+        "page": 1,
+        "evidence": "Amount: INR 275000.00"
+      },
+      "currency": {
+        "value": "INR",
+        "page": 1,
+        "evidence": "Amount: INR 275000.00"
+      },
+      "hospital": {
+        "value": "Fictional Air Rescue",
+        "page": 1,
+        "evidence": "Provider: Fictional Air Rescue"
+      },
+      "network_type": {
+        "value": null,
+        "page": null,
+        "evidence": null
+      }
+    }
+  },
+  {
+    "id": "claim-health-dental",
+    "kind": "claim",
+    "route": "Claim Check",
+    "policy_file": "OptimaLiteBrochure(6)-775316069816.pdf",
+    "bill_file": "health_dental.pdf",
+    "retrieval_query": "dental treatment exclusions",
+    "label": "exclusion_context",
+    "anchors": [
+      {
+        "page": 11,
+        "anchor": "Pregnancy, dental treatment, external aids and appliances"
+      }
+    ],
+    "bill_document": {
+      "invoice_id": "H-004",
+      "provider": "Fictional Dental Centre",
+      "service_date": "2026-03-07",
+      "description": "Root canal dental treatment",
+      "currency": "INR",
+      "amount": 18000
+    },
+    "expected_bill_fields": {
+      "procedure_or_diagnosis": {
+        "value": "Root canal dental treatment",
+        "page": 1,
+        "evidence": "Description: Root canal dental treatment"
+      },
+      "treatment_date": {
+        "value": "2026-03-07",
+        "page": 1,
+        "evidence": "Service date: 2026-03-07"
+      },
+      "amount": {
+        "value": 18000,
+        "page": 1,
+        "evidence": "Amount: INR 18000.00"
+      },
+      "currency": {
+        "value": "INR",
+        "page": 1,
+        "evidence": "Amount: INR 18000.00"
+      },
+      "hospital": {
+        "value": "Fictional Dental Centre",
+        "page": 1,
+        "evidence": "Provider: Fictional Dental Centre"
+      },
+      "network_type": {
+        "value": null,
+        "page": null,
+        "evidence": null
+      }
+    }
+  },
+  {
+    "id": "claim-health-homecare",
+    "kind": "claim",
+    "route": "Claim Check",
+    "policy_file": "OptimaLiteBrochure(6)-775316069816.pdf",
+    "bill_file": "health_homecare.pdf",
+    "retrieval_query": "home healthcare doctor visits nursing charges cashless",
+    "label": "relevant_clause",
+    "anchors": [
+      {
+        "page": 6,
+        "anchor": "This includes doctor visits, nursing charges"
+      }
+    ],
+    "bill_document": {
+      "invoice_id": "H-005",
+      "provider": "Fictional Home Nursing",
+      "service_date": "2026-01-09",
+      "description": "Home nursing and doctor visit",
+      "currency": "INR",
+      "amount": 12500
+    },
+    "expected_bill_fields": {
+      "procedure_or_diagnosis": {
+        "value": "Home nursing and doctor visit",
+        "page": 1,
+        "evidence": "Description: Home nursing and doctor visit"
+      },
+      "treatment_date": {
+        "value": "2026-01-09",
+        "page": 1,
+        "evidence": "Service date: 2026-01-09"
+      },
+      "amount": {
+        "value": 12500,
+        "page": 1,
+        "evidence": "Amount: INR 12500.00"
+      },
+      "currency": {
+        "value": "INR",
+        "page": 1,
+        "evidence": "Amount: INR 12500.00"
+      },
+      "hospital": {
+        "value": "Fictional Home Nursing",
+        "page": 1,
+        "evidence": "Provider: Fictional Home Nursing"
+      },
+      "network_type": {
+        "value": null,
+        "page": null,
+        "evidence": null
+      }
+    }
+  },
+  {
+    "id": "claim-health-glasses",
+    "kind": "claim",
+    "route": "Claim Check",
+    "policy_file": "OptimaLiteBrochure(6)-775316069816.pdf",
+    "bill_file": "health_spectacles.pdf",
+    "retrieval_query": "spectacles prescription glasses optical benefit",
+    "label": "insufficient_evidence",
+    "anchors": [],
+    "bill_document": {
+      "invoice_id": "H-006",
+      "provider": "Fictional Optical Store",
+      "service_date": "2026-06-02",
+      "description": "Prescription spectacles and frame",
+      "currency": "INR",
+      "amount": 8500
+    },
+    "expected_bill_fields": {
+      "procedure_or_diagnosis": {
+        "value": "Prescription spectacles and frame",
+        "page": 1,
+        "evidence": "Description: Prescription spectacles and frame"
+      },
+      "treatment_date": {
+        "value": "2026-06-02",
+        "page": 1,
+        "evidence": "Service date: 2026-06-02"
+      },
+      "amount": {
+        "value": 8500,
+        "page": 1,
+        "evidence": "Amount: INR 8500.00"
+      },
+      "currency": {
+        "value": "INR",
+        "page": 1,
+        "evidence": "Amount: INR 8500.00"
+      },
+      "hospital": {
+        "value": "Fictional Optical Store",
+        "page": 1,
+        "evidence": "Provider: Fictional Optical Store"
+      },
+      "network_type": {
+        "value": null,
+        "page": null,
+        "evidence": null
+      }
+    }
+  },
+  {
+    "id": "claim-travel-dental",
+    "kind": "claim",
+    "route": "Claim Check",
+    "policy_file": "travel_insurance_brochure-721286560295.pdf",
+    "bill_file": "travel_emergency_dental.pdf",
+    "retrieval_query": "emergency dental accidental injury acute pain",
+    "label": "relevant_clause",
+    "anchors": [
+      {
+        "page": 5,
+        "anchor": "emergency dental work arising out of an accidental injury or acute pain"
+      }
+    ],
+    "bill_document": {
+      "invoice_id": "T-001",
+      "provider": "Fictional Overseas Dental",
+      "service_date": "2026-08-12",
+      "description": "Emergency dental treatment for acute tooth pain",
+      "currency": "USD",
+      "amount": 240
+    },
+    "expected_bill_fields": {
+      "procedure_or_diagnosis": {
+        "value": "Emergency dental treatment for acute tooth pain",
+        "page": 1,
+        "evidence": "Description: Emergency dental treatment for acute tooth pain"
+      },
+      "treatment_date": {
+        "value": "2026-08-12",
+        "page": 1,
+        "evidence": "Service date: 2026-08-12"
+      },
+      "amount": {
+        "value": 240,
+        "page": 1,
+        "evidence": "Amount: USD 240.00"
+      },
+      "currency": {
+        "value": "USD",
+        "page": 1,
+        "evidence": "Amount: USD 240.00"
+      },
+      "hospital": {
+        "value": "Fictional Overseas Dental",
+        "page": 1,
+        "evidence": "Provider: Fictional Overseas Dental"
+      },
+      "network_type": {
+        "value": null,
+        "page": null,
+        "evidence": null
+      }
+    }
+  },
+  {
+    "id": "claim-health-hernia",
+    "kind": "claim",
+    "route": "Claim Check",
+    "policy_file": "OptimaLiteBrochure(6)-775316069816.pdf",
+    "bill_file": "health_hernia.pdf",
+    "retrieval_query": "Laparoscopic inguinal hernia repair",
+    "policy_start_date": "2026-02-01",
+    "label": "waiting_period_context",
+    "anchors": [
+      {
+        "page": 11,
+        "anchor": "diseases like cataracts, hernia, joint replacement"
+      }
+    ],
+    "bill_document": {
+      "invoice_id": "T-002",
+      "provider": "Fictional Surgical Hospital",
+      "service_date": "2026-09-01",
+      "description": "Laparoscopic inguinal hernia repair",
+      "currency": "INR",
+      "amount": 92000
+    },
+    "expected_bill_fields": {
+      "procedure_or_diagnosis": {
+        "value": "Laparoscopic inguinal hernia repair",
+        "page": 1,
+        "evidence": "Description: Laparoscopic inguinal hernia repair"
+      },
+      "treatment_date": {
+        "value": "2026-09-01",
+        "page": 1,
+        "evidence": "Service date: 2026-09-01"
+      },
+      "amount": {
+        "value": 92000,
+        "page": 1,
+        "evidence": "Amount: INR 92000.00"
+      },
+      "currency": {
+        "value": "INR",
+        "page": 1,
+        "evidence": "Amount: INR 92000.00"
+      },
+      "hospital": {
+        "value": "Fictional Surgical Hospital",
+        "page": 1,
+        "evidence": "Provider: Fictional Surgical Hospital"
+      },
+      "network_type": {
+        "value": null,
+        "page": null,
+        "evidence": null
+      }
+    }
+  },
+  {
+    "id": "claim-health-arthroplasty",
+    "kind": "claim",
+    "route": "Claim Check",
+    "policy_file": "OptimaLiteBrochure(6)-775316069816.pdf",
+    "bill_file": "health_arthroplasty.pdf",
+    "retrieval_query": "Total knee arthroplasty for osteoarthritis",
+    "policy_start_date": "2023-07-18",
+    "label": "waiting_period_context",
+    "anchors": [
+      {
+        "page": 11,
+        "anchor": "diseases like cataracts, hernia, joint replacement"
+      }
+    ],
+    "bill_document": {
+      "invoice_id": "T-003",
+      "provider": "Fictional Orthopaedic Hospital",
+      "service_date": "2026-07-18",
+      "description": "Total knee arthroplasty for osteoarthritis",
+      "currency": "INR",
+      "amount": 240000
+    },
+    "expected_bill_fields": {
+      "procedure_or_diagnosis": {
+        "value": "Total knee arthroplasty for osteoarthritis",
+        "page": 1,
+        "evidence": "Description: Total knee arthroplasty for osteoarthritis"
+      },
+      "treatment_date": {
+        "value": "2026-07-18",
+        "page": 1,
+        "evidence": "Service date: 2026-07-18"
+      },
+      "amount": {
+        "value": 240000,
+        "page": 1,
+        "evidence": "Amount: INR 240000.00"
+      },
+      "currency": {
+        "value": "INR",
+        "page": 1,
+        "evidence": "Amount: INR 240000.00"
+      },
+      "hospital": {
+        "value": "Fictional Orthopaedic Hospital",
+        "page": 1,
+        "evidence": "Provider: Fictional Orthopaedic Hospital"
+      },
+      "network_type": {
+        "value": null,
+        "page": null,
+        "evidence": null
+      }
+    }
+  },
+  {
+    "id": "claim-travel-evacuation",
+    "kind": "claim",
+    "route": "Claim Check",
+    "policy_file": "travel_insurance_brochure-721286560295.pdf",
+    "bill_file": "travel_evacuation.pdf",
+    "retrieval_query": "medical evacuation nearest hospital appropriate treatment",
+    "label": "relevant_clause",
+    "anchors": [
+      {
+        "page": 5,
+        "anchor": "moving an Insured Person to the nearest Hospital where appropriate treatment can be received"
+      }
+    ],
+    "bill_document": {
+      "invoice_id": "T-004",
+      "provider": "Fictional Alpine Rescue",
+      "service_date": "2026-10-03",
+      "description": "Medical evacuation to nearest hospital",
+      "currency": "USD",
+      "amount": 4100
+    },
+    "expected_bill_fields": {
+      "procedure_or_diagnosis": {
+        "value": "Medical evacuation to nearest hospital",
+        "page": 1,
+        "evidence": "Description: Medical evacuation to nearest hospital"
+      },
+      "treatment_date": {
+        "value": "2026-10-03",
+        "page": 1,
+        "evidence": "Service date: 2026-10-03"
+      },
+      "amount": {
+        "value": 4100,
+        "page": 1,
+        "evidence": "Amount: USD 4100.00"
+      },
+      "currency": {
+        "value": "USD",
+        "page": 1,
+        "evidence": "Amount: USD 4100.00"
+      },
+      "hospital": {
+        "value": "Fictional Alpine Rescue",
+        "page": 1,
+        "evidence": "Provider: Fictional Alpine Rescue"
+      },
+      "network_type": {
+        "value": null,
+        "page": null,
+        "evidence": null
+      }
+    }
+  },
+  {
+    "id": "claim-travel-adventure",
+    "kind": "claim",
+    "route": "Claim Check",
+    "policy_file": "hdfc-ergo-explorer-brochure_gold-and-platinum-plan_with-ped-909363694896.pdf",
+    "bill_file": "travel_adventure_injury.pdf",
+    "retrieval_query": "hazardous adventure sports exclusion",
+    "label": "exclusion_context",
+    "anchors": [
+      {
+        "page": 10,
+        "anchor": "Hazardous or adventure sports"
+      }
+    ],
+    "bill_document": {
+      "invoice_id": "T-005",
+      "provider": "Fictional Mountain Clinic",
+      "service_date": "2026-11-06",
+      "description": "Treatment after recreational mountaineering fall",
+      "currency": "USD",
+      "amount": 1750
+    },
+    "expected_bill_fields": {
+      "procedure_or_diagnosis": {
+        "value": "Treatment after recreational mountaineering fall",
+        "page": 1,
+        "evidence": "Description: Treatment after recreational mountaineering fall"
+      },
+      "treatment_date": {
+        "value": "2026-11-06",
+        "page": 1,
+        "evidence": "Service date: 2026-11-06"
+      },
+      "amount": {
+        "value": 1750,
+        "page": 1,
+        "evidence": "Amount: USD 1750.00"
+      },
+      "currency": {
+        "value": "USD",
+        "page": 1,
+        "evidence": "Amount: USD 1750.00"
+      },
+      "hospital": {
+        "value": "Fictional Mountain Clinic",
+        "page": 1,
+        "evidence": "Provider: Fictional Mountain Clinic"
+      },
+      "network_type": {
+        "value": null,
+        "page": null,
+        "evidence": null
+      }
+    }
+  },
+  {
+    "id": "claim-travel-genomic-counselling",
+    "kind": "claim",
+    "route": "Claim Check",
+    "policy_file": "travel_insurance_brochure-721286560295.pdf",
+    "bill_file": "travel_genomic_counselling.pdf",
+    "retrieval_query": "Elective pharmacogenomic counselling consultation",
+    "label": "insufficient_evidence",
+    "anchors": [],
+    "bill_document": {
+      "invoice_id": "T-006",
+      "provider": "Fictional Genomics Clinic",
+      "service_date": "2026-09-22",
+      "description": "Elective pharmacogenomic counselling consultation",
+      "currency": "USD",
+      "amount": 180
+    },
+    "expected_bill_fields": {
+      "procedure_or_diagnosis": {
+        "value": "Elective pharmacogenomic counselling consultation",
+        "page": 1,
+        "evidence": "Description: Elective pharmacogenomic counselling consultation"
+      },
+      "treatment_date": {
+        "value": "2026-09-22",
+        "page": 1,
+        "evidence": "Service date: 2026-09-22"
+      },
+      "amount": {
+        "value": 180,
+        "page": 1,
+        "evidence": "Amount: USD 180.00"
+      },
+      "currency": {
+        "value": "USD",
+        "page": 1,
+        "evidence": "Amount: USD 180.00"
+      },
+      "hospital": {
+        "value": "Fictional Genomics Clinic",
+        "page": 1,
+        "evidence": "Provider: Fictional Genomics Clinic"
+      },
+      "network_type": {
+        "value": null,
+        "page": null,
+        "evidence": null
+      }
+    }
+  }
+]

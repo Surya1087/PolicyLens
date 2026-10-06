@@ -1,0 +1,30 @@
+# Secrets and local configuration
+.env
+.env.*
+!.env_example
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Local runtime data, vector indexes, model caches and logs
+.local_data/
+data/chroma/
+*.log
+
+# OS/editor files
+.DS_Store
+.idea/
+.vscode/
+
+# Evaluation runtime outputs (keep labels/scripts, not generated traces)
+evaluation/results/
