@@ -186,8 +186,6 @@ For the build environment's fully resolved versions, install `requirements-lock.
 
 ## Architectural reference and attribution
 
-Reference studied: <https://github.com/abhinav221294/agentic-ai-projects/tree/main/finshield_ai>.
-
 PolicyLens independently rebuilds its insurance-agent/RAG structure, preserving page provenance and policy isolation and replacing static evaluation answers with real pipeline capture. No finance agent or finance dataset is included. Reference PDF URLs and SHA-256 hashes are in `data/README.md`; third-party brochures remain the property of their issuers. Confirm redistribution permissions before a future public repository release.
 
 **Next milestone:** confirm this local flow works with your key and documents. Only after your confirmation should Git ignore rules, final secret checks and GitHub preparation be performed. There is no deployment or Git automation in this build.
