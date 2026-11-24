@@ -13,6 +13,7 @@ from rag.models import Chunk, Page, PolicyDocument, PolicyLensError
 from rag.rag_pipeline import RAGPipeline, expand_clinical_query
 from rag.splitter import split_pages
 from rag.vector_store import ChromaVectorStore
+from rag.hybrid import LocalBM25, reciprocal_rank_fusion
 
 
 class FakeModel:
@@ -149,6 +150,20 @@ def test_pipeline_uses_policy_filter_and_needs_no_llm(tmp_path):
 def test_invalid_settings_reject_overlap(tmp_path):
     with pytest.raises(ValueError, match="overlap"):
         Settings(data_dir=tmp_path, chunk_size=10, chunk_overlap=10)
+
+
+def test_bm25_retrieves_exact_keywords_and_rrf_deduplicates():
+    policy_id = "policy-one"
+    chunks = [
+        Chunk("k1", policy_id, "Room rent limit is INR 5,000 per day.", 1, "", "policy.pdf"),
+        Chunk("k2", policy_id, "Hospitalisation exclusions and waiting periods.", 2, "", "policy.pdf"),
+        Chunk("k3", policy_id, "The policy premium is payable annually.", 3, "", "policy.pdf"),
+    ]
+    matches = LocalBM25(chunks).retrieve("room rent limit", 2)
+    assert matches[0].id == "k1"
+    fused = reciprocal_rank_fusion([[chunks[0], chunks[1]], [chunks[1], chunks[2]]])
+    assert len(fused) == 3
+    assert fused.count(chunks[1]) == 1
 
 
 def test_chroma_persists_metadata_and_never_mingles_policies(tmp_path):

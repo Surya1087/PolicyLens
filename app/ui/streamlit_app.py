@@ -4,6 +4,7 @@ from __future__ import annotations
 import hashlib
 import json
 import sys
+import shutil
 from pathlib import Path
 from uuid import uuid4
 
@@ -52,6 +53,12 @@ def pipeline() -> RAGPipeline:
 
 def display_result(result: dict, key: str) -> None:
     """Render model/document content as text, never HTML or executable links."""
+    confidence = result.get("evidence_confidence")
+    if confidence:
+        st.caption(
+            f"Evidence confidence: {confidence['level']} "
+            f"(score {confidence['score']:.2f}; {confidence['retrieved_chunks']} retrieved chunk(s))."
+        )
     for warning in result.get("warnings", []) + result.get("bill_warnings", []):
         st.warning(warning)
     if "bill_fields" in result:
@@ -86,7 +93,8 @@ def display_result(result: dict, key: str) -> None:
             st.code(source["id"], language=None)
             st.text(source["text"])
     st.download_button(
-        "Download this analysis (JSON)", json.dumps(result, indent=2, ensure_ascii=False),
+        "Download this analysis (JSON) — private medical/policy data",
+        json.dumps(result, indent=2, ensure_ascii=False),
         file_name=f"policylens-{key}.json", mime="application/json", key=f"download-{key}",
     )
     st.caption("Downloads may contain medical information. Keep them private.")
@@ -154,6 +162,17 @@ def main() -> None:
                 st.info("Add GROQ_API_KEY to your local .env, then restart Streamlit. Local indexing works without a key.")
             consent = st.checkbox("I consent to sending relevant policy text and, for Claim Check, bill text to Groq.", key="consent")
             st.caption("No OCR, paid API, or cloud vector database. Groq generation is an external network request. Avoid real patient identifiers in demonstrations.")
+            delete_confirm = st.checkbox("I understand this permanently deletes local indexes.", key="delete_confirm")
+            if st.button("Delete local PolicyLens data", disabled=not delete_confirm, use_container_width=True):
+                try:
+                    shutil.rmtree(settings.data_dir)
+                    st.session_state.clear()
+                    st.success("Local PolicyLens data was deleted.")
+                    st.rerun()
+                except FileNotFoundError:
+                    st.info("No local PolicyLens data directory exists.")
+                except OSError as exc:
+                    st.error(f"Local data could not be deleted: {exc}")
             if st.button("Clear on-screen session", use_container_width=True):
                 st.session_state.clear()
                 st.rerun()

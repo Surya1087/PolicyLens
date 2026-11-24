@@ -6,6 +6,7 @@ DEFAULT_MAX_PDF_BYTES = 25 * 1024 * 1024
 DEFAULT_CHUNK_SIZE = 1_000
 DEFAULT_CHUNK_OVERLAP = 180
 DEFAULT_RETRIEVAL_K = 6
+DEFAULT_RERANKER_MODEL = "cross-encoder/ms-marco-MiniLM-L-6-v2"
 
 # These patterns identify language that usually needs surrounding context. They
 # are deliberately narrow: matching one is a review signal, not a conclusion.

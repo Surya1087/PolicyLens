@@ -18,6 +18,7 @@ from .constants import (
     DEFAULT_GROQ_MODEL,
     DEFAULT_MAX_PDF_BYTES,
     DEFAULT_RETRIEVAL_K,
+    DEFAULT_RERANKER_MODEL,
 )
 
 
@@ -55,6 +56,9 @@ class Settings:
     )
     retrieval_k: int = field(
         default_factory=lambda: _positive_int("POLICYLENS_RETRIEVAL_K", DEFAULT_RETRIEVAL_K)
+    )
+    reranker_model: str = field(
+        default_factory=lambda: os.getenv("POLICYLENS_RERANKER_MODEL", DEFAULT_RERANKER_MODEL)
     )
 
     def __post_init__(self) -> None:

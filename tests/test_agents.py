@@ -52,6 +52,16 @@ def test_question_keeps_only_exact_supported_citations():
     assert result["warnings"]
 
 
+def test_question_removes_statement_with_unverified_number():
+    llm = FakeLLM([{"items": [{
+        "statement": "The waiting period is 36 months.",
+        "citations": [{"id": "c1", "quote": "The deductible is INR 5,000."}],
+    }]}])
+    result = InsuranceAgent(Pipeline(), llm).run("p1", "waiting period?")
+    assert "36 months" not in result["answer"]
+    assert result["evidence_confidence"]["level"] in {"low", "medium", "high"}
+
+
 def test_summary_retrieves_multiple_facets():
     llm = FakeLLM([{"items": []}])
     pipeline = Pipeline()

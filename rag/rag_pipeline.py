@@ -5,6 +5,7 @@ from __future__ import annotations
 from os import PathLike
 from pathlib import Path
 from typing import BinaryIO
+from functools import lru_cache
 
 from config.constants import CLINICAL_SYNONYM_GROUPS
 from config.settings import Settings, get_settings
@@ -13,6 +14,31 @@ from .embeddings import Embeddings, SentenceTransformerEmbeddings
 from .ingest import build_policy_document
 from .models import Chunk, PolicyDocument
 from .vector_store import ChromaVectorStore
+from .hybrid import LocalBM25, reciprocal_rank_fusion
+
+
+@lru_cache(maxsize=2)
+def _reranker(model_name: str):
+    try:
+        from sentence_transformers import CrossEncoder
+        return CrossEncoder(model_name)
+    except Exception:
+        return None
+
+
+def rerank_chunks(query: str, chunks: list[Chunk], model_name: str = "cross-encoder/ms-marco-MiniLM-L-6-v2") -> list[Chunk]:
+    """Rerank fused candidates with an optional local cross-encoder."""
+    if len(chunks) < 2:
+        return chunks
+    reranker = _reranker(model_name)
+    if reranker is None:
+        return chunks
+    try:
+        scores = reranker.predict([(query, chunk.text) for chunk in chunks])
+        ranked = sorted(zip(scores, chunks), key=lambda item: float(item[0]), reverse=True)
+        return [chunk for _, chunk in ranked]
+    except Exception:
+        return chunks
 
 
 def claim_retrieval_query(bill_fields: dict) -> str:
@@ -68,7 +94,13 @@ class RAGPipeline:
         return policy
 
     def retrieve(self, policy_id: str, query: str, k: int = 6) -> list[Chunk]:
-        return self.vector_store.retrieve(policy_id, expand_clinical_query(query), k)
+        expanded = expand_clinical_query(query)
+        vector_chunks = self.vector_store.retrieve(policy_id, expanded, max(k * 3, k))
+        policy = self.vector_store.get_policy(policy_id)
+        keyword_chunks = LocalBM25(policy.chunks).retrieve(expanded, max(k * 3, k))
+        fused = reciprocal_rank_fusion([vector_chunks, keyword_chunks])[: max(k * 2, k)]
+        reranked = rerank_chunks(expanded, fused, self.settings.reranker_model)
+        return reranked[:k]
 
     def get_policy(self, policy_id: str) -> PolicyDocument:
         return self.vector_store.get_policy(policy_id)

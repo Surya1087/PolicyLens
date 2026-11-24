@@ -97,12 +97,16 @@ def validate_facts(items: list[Fact], chunks: Iterable[Chunk]) -> tuple[list[Fac
     used: dict[str, Chunk] = {}
     for item in items:
         item_ok = bool(item.statement.strip())
+        cited_text: list[str] = []
         for citation in item.citations:
             chunk = by_id.get(citation.id)
             quote = citation.quote.strip()
             if chunk is None or not quote or _normalize(quote) not in _normalize(chunk.text):
                 item_ok = False
                 break
+            cited_text.append(quote)
+        if item_ok and not _numbers_match(item.statement, cited_text):
+            item_ok = False
         if not item_ok:
             warnings.append("An unsupported generated statement was removed.")
             continue
@@ -131,9 +135,49 @@ def fact_result(items: list[Fact], chunks: Iterable[Chunk], *, empty: str, extra
     return result
 
 
+def evidence_confidence(chunks: Iterable[Chunk], *, query: str = "") -> dict:
+    """Return conservative local evidence metadata without claiming model certainty."""
+    context = list(unique_chunks(chunks))
+    query_terms = {term for term in re.findall(r"[A-Za-z0-9]+", query.casefold()) if len(term) > 2}
+    matched_terms = {
+        term
+        for term in query_terms
+        if any(term in chunk.text.casefold() for chunk in context)
+    }
+    score = 0.0
+    if context:
+        score += min(0.5, len(context) * 0.1)
+    if query_terms:
+        score += 0.5 * (len(matched_terms) / len(query_terms))
+    level = "high" if score >= 0.75 else "medium" if score >= 0.45 else "low"
+    return {
+        "level": level,
+        "score": round(score, 2),
+        "retrieved_chunks": len(context),
+        "matched_query_terms": len(matched_terms),
+    }
+
+
 def json_user(instruction: str, chunks: Iterable[Chunk], **context: Any) -> str:
     return instruction + "\nCONTEXT:\n" + json.dumps(context, ensure_ascii=False) + "\nEXCERPTS:\n" + excerpts(chunks)
 
 
 def _normalize(text: str) -> str:
     return re.sub(r"\s+", " ", text).strip().casefold()
+
+
+def _numbers_match(statement: str, cited_text: Iterable[str]) -> bool:
+    """Conservative numeric consistency check for generated statements."""
+    statement_numbers = re.findall(r"(?<!\w)\d+(?:,\d{3})*(?:\.\d+)?%?(?!\w)", statement)
+    if not statement_numbers:
+        return True
+    evidence = " ".join(cited_text).casefold()
+    normalized_numbers = {
+        number.replace(",", "").casefold()
+        for number in statement_numbers
+    }
+    evidence_numbers = {
+        number.replace(",", "").casefold()
+        for number in re.findall(r"(?<!\w)\d+(?:,\d{3})*(?:\.\d+)?%?(?!\w)", evidence)
+    }
+    return normalized_numbers.issubset(evidence_numbers)

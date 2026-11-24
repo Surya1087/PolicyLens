@@ -81,6 +81,8 @@ The cataract bill says **phacoemulsification**, not cataract. Clinical query exp
 ## Features
 
 - Digital PDF parsing with physical-page provenance, page-local overlapping chunks, normalized local embeddings, and persistent policy-isolated Chroma retrieval.
+- Free/local hybrid retrieval combines BM25 keyword matching with normalized vector search, reciprocal-rank fusion, and an optional local cross-encoder reranker.
+- Evidence confidence metadata identifies weak or limited local support without claiming model certainty.
 - Grounded Q&A; multi-facet summary of benefits, optional covers, exclusions, numbers and claim steps; cited comparison of two policies.
 - Risk review of waiting periods, deductibles, exclusions and limitations. A full extracted-text regex scan finds discretionary language, followed by batched LLM confirmation and explanations.
 - Strict JSON bill extraction: procedure/diagnosis, date, amount, currency, hospital and explicitly stated network status. Each field must carry matching source-page evidence; unsupported fields become `null`.
