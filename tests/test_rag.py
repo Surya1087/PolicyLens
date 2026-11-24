@@ -79,6 +79,12 @@ def test_embeddings_are_lazy_and_injectable():
     assert len(calls) == 1
 
 
+def test_sentence_transformers_imports_with_pinned_dependencies():
+    import sentence_transformers
+
+    assert sentence_transformers.__version__ == "4.1.0"
+
+
 def test_query_expansion_keeps_original_and_adds_synonyms():
     query = "Does phacoemulsification need pre-authorisation?"
     expanded = expand_clinical_query(query)

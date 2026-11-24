@@ -43,7 +43,8 @@ class SentenceTransformerEmbeddings:
                     from sentence_transformers import SentenceTransformer
                 except ImportError as exc:  # pragma: no cover - environment configuration
                     raise PolicyLensError(
-                        "Embedding support is unavailable; install sentence-transformers"
+                        f"Embedding support could not be imported: {exc}. "
+                        "Reinstall the pinned dependencies with `python -m pip install -r requirements.txt`."
                     ) from exc
                 self._model = SentenceTransformer(self.model_name)
         return self._model

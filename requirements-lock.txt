@@ -340,8 +340,9 @@ protobuf==6.33.6
     #   onnxruntime
     #   opentelemetry-proto
     #   streamlit
-pyarrow==25.0.1
+pyarrow==19.0.1
     # via
+    #   -r requirements.txt
     #   datasets
     #   streamlit
 pydantic==2.11.5

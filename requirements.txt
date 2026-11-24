@@ -16,6 +16,7 @@ ragas==0.2.15
 datasets==3.6.0
 pandas==2.2.3
 numpy==1.26.4
+pyarrow==19.0.1
 reportlab==4.4.1
 pytest==8.3.5
 httpx==0.28.1
