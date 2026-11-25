@@ -69,7 +69,7 @@ The first indexing operation downloads the public `sentence-transformers/all-Min
 ### Suggested demonstration
 
 1. Select `OptimaLiteBrochure(6)-775316069816.pdf` in the sidebar and click **Index selected sample**.
-2. Read the privacy notice and consent before sending text to Groq.
+2. Read the privacy notice before using AI features; relevant policy or bill text is sent to Groq for generation.
 3. Generate an **Executive Summary**. Ask: “What is the room rent limit?”
 4. Run **Risk Analysis**; inspect the separate ambiguity scan and any partial-review warnings.
 5. In **Check Claim**, choose `health_cataract.pdf`. Optionally provide `2025-06-01` as the fictional policy start date from its test case, then click **Check Claim**.

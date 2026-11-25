@@ -2,7 +2,7 @@
 
 ## Separation of concerns
 
-Streamlit owns consent and presentation. The router maps explicit task names to
+Streamlit owns AI data-sharing disclosure and presentation. The router maps explicit task names to
 agent classes rather than asking a model to choose tools. All five agents receive
 the same `RAGPipeline` dependency. Agents are independently testable through an
 injected LLM with the `complete_json(system, user, schema)` interface.

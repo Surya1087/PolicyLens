@@ -31,6 +31,21 @@ def test_policy_tabs_and_safe_rendering_without_network(monkeypatch):
     assert next(button for button in app.button if button.label == "Check Claim").disabled
 
 
+def test_ai_actions_need_key_but_not_a_separate_consent_checkbox(monkeypatch):
+    monkeypatch.setenv("GROQ_API_KEY", "test-key-not-used")
+    get_settings.cache_clear()
+    app = AppTest.from_file(str(ROOT / "app/ui/streamlit_app.py"))
+    chunk = Chunk("test:p1", "test", "Waiting period: 24 months.", 1, "Waiting period", "example.pdf")
+    app.session_state["policy"] = PolicyDocument("test", "example.pdf", [Page(1, chunk.text)], [chunk], [])
+    app.session_state["results"] = {}
+    app.run(timeout=20)
+
+    assert not any("consent" in checkbox.label.casefold() for checkbox in app.checkbox)
+    assert not next(button for button in app.button if button.label == "Generate summary").disabled
+    app.text_area[0].set_value("What is the waiting period?").run(timeout=20)
+    assert not next(button for button in app.button if button.label == "Get an answer").disabled
+
+
 def vars_safe(chunk):
     from dataclasses import asdict
     return asdict(chunk)

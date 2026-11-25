@@ -162,8 +162,7 @@ def main() -> None:
                 st.success("Local API key is configured (not yet verified).")
             else:
                 st.info("Add GROQ_API_KEY to your local .env, then restart Streamlit. Local indexing works without a key.")
-            consent = st.checkbox("I consent to sending relevant policy text and, for Claim Check, bill text to Groq.", key="consent")
-            st.caption("No OCR, paid API, or cloud vector database. Groq generation is an external network request. Avoid real patient identifiers in demonstrations.")
+            st.caption("AI summaries, answers, and claim checks send relevant policy or bill text to Groq. Avoid real patient identifiers. Embeddings and vector search run locally; no paid API or cloud vector database is used.")
             delete_confirm = st.checkbox("I understand this permanently deletes local indexes.", key="delete_confirm")
             if st.button("Delete local PolicyLens data", disabled=not delete_confirm, use_container_width=True):
                 try:
@@ -201,17 +200,17 @@ def main() -> None:
         left.metric("Pages", len(policy.pages))
         middle.metric("Passages ready", len(policy.chunks))
         right.metric("Privacy", "Local index")
-    enabled = bool(settings.groq_api_key and consent)
+    enabled = bool(settings.groq_api_key)
     if st.session_state.get("summary_pending") and enabled:
         st.session_state["summary_pending"] = False
         analyze("Executive Summary", "summary", policy_id=policy.policy_id)
     if not enabled:
-        st.info("To generate an answer, add your local Groq key and confirm the privacy consent in the sidebar. You can still inspect source pages.")
+        st.info("To generate a summary or answer, add GROQ_API_KEY to your local .env and restart Streamlit. You can still inspect source pages.")
     tabs = st.tabs(["🧾 Quick summary", "💬 Ask a question", "🔎 Find things to review", "🏥 Check a bill", "⚖️ Compare policies", "📄 Read source pages"])
     with tabs[0]:
         action_intro(
             "Executive summary",
-            "Your summary is generated automatically after indexing when Groq access and privacy consent are ready.",
+            "Your summary is generated automatically after indexing when your Groq API key is configured.",
             "This is a scoped summary, not an exhaustive contract review.",
         )
         if st.button("Generate summary", disabled=not enabled or st.session_state.get("summary_pending", False), type="primary"):
