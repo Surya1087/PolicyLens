@@ -1,7 +1,8 @@
 """Shared constants and conservative language-risk patterns."""
 
 DEFAULT_EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
-DEFAULT_MISTRAL_MODEL = "mistral-small-latest"
+DEFAULT_OLLAMA_MODEL = "qwen2.5:3b"
+DEFAULT_OLLAMA_BASE_URL = "http://127.0.0.1:11434"
 DEFAULT_MAX_PDF_BYTES = 25 * 1024 * 1024
 DEFAULT_CHUNK_SIZE = 1_000
 DEFAULT_CHUNK_OVERLAP = 180

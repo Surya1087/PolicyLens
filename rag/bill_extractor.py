@@ -7,7 +7,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
-from llm import MistralClient
+from llm import OllamaClient
 from prompts.prompt import BILL_SYSTEM, BILL_TASK
 from rag.models import Page, PolicyLensError
 
@@ -60,7 +60,7 @@ class BillExtraction(BaseModel):
 
 class BillExtractor:
     def __init__(self, llm=None):
-        self.llm = llm if llm is not None else MistralClient()
+        self.llm = llm if llm is not None else OllamaClient()
         self.last_warnings: list[str] = []
 
     def extract(self, source: Any, filename: str | None = None) -> dict:

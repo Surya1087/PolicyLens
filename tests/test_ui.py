@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_initial_screen_needs_no_key_or_model(monkeypatch):
-    monkeypatch.delenv("MISTRAL_API_KEY", raising=False)
+    monkeypatch.delenv("POLICYLENS_OLLAMA_MODEL", raising=False)
     get_settings.cache_clear()
     app = AppTest.from_file(str(ROOT / "app/ui/streamlit_app.py")).run(timeout=20)
     assert not app.exception
@@ -18,7 +18,7 @@ def test_initial_screen_needs_no_key_or_model(monkeypatch):
 
 
 def test_policy_tabs_and_safe_rendering_without_network(monkeypatch):
-    monkeypatch.delenv("MISTRAL_API_KEY", raising=False)
+    monkeypatch.delenv("POLICYLENS_OLLAMA_MODEL", raising=False)
     get_settings.cache_clear()
     app = AppTest.from_file(str(ROOT / "app/ui/streamlit_app.py"))
     chunk = Chunk("test:p1", "test", "Waiting period: 24 months.", 1, "Waiting period", "example.pdf")
@@ -31,8 +31,8 @@ def test_policy_tabs_and_safe_rendering_without_network(monkeypatch):
     assert next(button for button in app.button if button.label == "Check Claim").disabled
 
 
-def test_ai_actions_need_key_but_not_a_separate_consent_checkbox(monkeypatch):
-    monkeypatch.setenv("MISTRAL_API_KEY", "test-key-not-used")
+def test_ai_actions_are_enabled_without_api_key(monkeypatch):
+    monkeypatch.delenv("POLICYLENS_OLLAMA_MODEL", raising=False)
     get_settings.cache_clear()
     app = AppTest.from_file(str(ROOT / "app/ui/streamlit_app.py"))
     chunk = Chunk("test:p1", "test", "Waiting period: 24 months.", 1, "Waiting period", "example.pdf")

@@ -58,16 +58,6 @@ def _policy(pipeline: Any, filename: str, cache: dict[str, str]) -> str:
     return cache[filename]
 
 
-def _blocked(cases: list[dict[str, Any]], out: Path, mode: str) -> int:
-    rows = [{
-        "id": case["id"], "kind": case["kind"], "route": case["route"],
-        "status": "blocked", "error": "MISTRAL_API_KEY is missing", **{field: None for field in FIELDS},
-    } for case in cases]
-    raw_name = "raw_claim_records.jsonl" if mode == "claim-full" else "raw_agent_records.jsonl"
-    _write(rows, out, [], raw_name)
-    return 2
-
-
 def _actual_contexts(result: dict[str, Any]) -> list[dict[str, Any]]:
     if "retrieved_contexts" not in result:
         raise ValueError("Agent result omitted retrieved_contexts; actual context cannot be evaluated")
@@ -92,9 +82,9 @@ def _default_ragas_runtime(settings: Any) -> tuple[Any, Any]:
     from langchain_huggingface import HuggingFaceEmbeddings
     return (
         ChatOpenAI(
-            api_key=settings.mistral_api_key,
-            model=settings.mistral_model,
-            base_url="https://api.mistral.ai/v1",
+            api_key="ollama",
+            model=settings.ollama_model,
+            base_url=settings.ollama_base_url.rstrip("/") + "/v1",
             max_retries=1,
         ),
         HuggingFaceEmbeddings(model_name=settings.embedding_model),
@@ -120,9 +110,6 @@ def run(
             raise ValueError("Unknown evaluation case ID(s): " + ", ".join(sorted(unknown)))
         cases = [case for case in cases if case["id"] in case_ids]
     settings = settings_loader()
-    if mode in {"agent", "claim-full"} and not settings.mistral_api_key:
-        return _blocked(cases, out, mode)
-
     pipeline = (pipeline_factory or _default_pipeline_factory)()
     # Retrieval-only must never instantiate Router or an LLM.
     router = None if mode == "claim-retrieval" else (router_factory or _default_router_factory)(pipeline)

@@ -1,34 +1,22 @@
 from __future__ import annotations
 
-import json
-
 import httpx
 import pytest
 
-from llm.mistral_client import MistralClient
+from llm.ollama_client import OllamaClient
 from rag.models import PolicyLensError
 
 
 class FakeResponse:
-    def __init__(self, content=None, status_code=200, headers=None, error_message=None):
-        self.payload = {
-            "choices": [{"message": {"content": content}}],
-        }
-        if error_message:
-            self.payload = {"error": {"message": error_message}}
+    def __init__(self, content=None, status_code=200):
+        self.payload = {"message": {"content": content}}
         self.status_code = status_code
-        self.headers = headers or {}
-        self.request = httpx.Request("POST", "https://api.mistral.ai/v1/chat/completions")
+        self.request = httpx.Request("POST", "http://127.0.0.1:11434/api/chat")
 
     def raise_for_status(self):
         if self.status_code >= 400:
-            response = httpx.Response(
-                self.status_code,
-                headers=self.headers,
-                json=self.payload,
-                request=self.request,
-            )
-            raise httpx.HTTPStatusError("provider error", request=self.request, response=response)
+            response = httpx.Response(self.status_code, request=self.request)
+            raise httpx.HTTPStatusError("local model error", request=self.request, response=response)
 
     def json(self):
         return self.payload
@@ -48,7 +36,7 @@ class FakeHTTPClient:
 
 
 def client_with(*outcomes):
-    client = MistralClient(api_key="test-key", max_retries=1)
+    client = OllamaClient(model="qwen2.5:3b")
     http = FakeHTTPClient(outcomes)
     client._client = http
     return client, http
@@ -62,55 +50,38 @@ SCHEMA = {
 }
 
 
-def test_client_is_lazy_and_missing_key_is_clear():
-    client = MistralClient(api_key="")
-    assert client._client is None
-    with pytest.raises(PolicyLensError, match="Mistral API key is missing"):
-        client.complete_json("system", "user", SCHEMA)
+def test_json_response_and_schema_are_validated():
+    client, http = client_with(FakeResponse('{"answer":"ok"}'))
+    assert client.complete_json("system", "user", SCHEMA) == {"answer": "ok"}
+    url, request = http.calls[0]
+    assert url == "http://127.0.0.1:11434/api/chat"
+    assert request["json"]["model"] == "qwen2.5:3b"
+    assert request["json"]["stream"] is False
+    assert request["json"]["format"] == "json"
+    assert '"answer"' in request["json"]["messages"][0]["content"]
 
 
-def test_malformed_json_error_is_clear():
+def test_malformed_json_is_rejected():
     client, _ = client_with(FakeResponse("not-json"))
     with pytest.raises(PolicyLensError, match="malformed JSON"):
         client.complete_json("system", "user", SCHEMA)
 
 
-def test_schema_is_validated():
+def test_invalid_response_schema_is_rejected():
     client, _ = client_with(FakeResponse('{"wrong":"field"}'))
     with pytest.raises(PolicyLensError, match="schema validation"):
         client.complete_json("system", "user", SCHEMA)
 
 
-def test_rate_limit_retries_are_bounded(monkeypatch):
-    monkeypatch.setattr("llm.mistral_client.time.sleep", lambda _: None)
-    client, http = client_with(
-        FakeResponse(status_code=503),
-        FakeResponse('{"answer":"ok"}'),
-    )
-    assert client.complete_json("system", "user", SCHEMA) == {"answer": "ok"}
-    assert len(http.calls) == 2
-
-
-def test_exhausted_rate_limit_explains_wait():
-    response = FakeResponse(
-        status_code=429,
-        headers={
-            "Retry-After": "30",
-            "x-ratelimit-remaining-requests": "0",
-            "x-ratelimit-reset-requests": "30s",
-        },
-    )
-    client, http = client_with(response)
-    with pytest.raises(PolicyLensError, match="Retry-After: 30") as error:
+def test_missing_local_model_has_actionable_error():
+    client, _ = client_with(FakeResponse(status_code=404))
+    with pytest.raises(PolicyLensError, match=r"ollama pull qwen2.5:3b"):
         client.complete_json("system", "user", SCHEMA)
-    assert "remaining-requests: 0" in str(error.value)
-    assert len(http.calls) == 1
 
 
-def test_rate_limit_includes_bounded_provider_explanation():
-    response = FakeResponse(status_code=429, error_message="Insufficient balance for this request.")
-    client, _ = client_with(response)
-    with pytest.raises(PolicyLensError, match="Insufficient balance for this request"):
+def test_ollama_not_running_has_actionable_error():
+    client, _ = client_with(httpx.ConnectError("refused"))
+    with pytest.raises(PolicyLensError, match="Install/start Ollama"):
         client.complete_json("system", "user", SCHEMA)
 
 
@@ -124,22 +95,3 @@ def test_nested_schema_refs_are_validated():
     client, _ = client_with(FakeResponse('{"item":{}}'))
     with pytest.raises(PolicyLensError, match="schema validation"):
         client.complete_json("system", "user", schema)
-
-
-def test_json_schema_and_mistral_endpoint_are_used():
-    client, http = client_with(FakeResponse('{"answer":"ok"}'))
-    assert client.complete_json("system", "user", SCHEMA) == {"answer": "ok"}
-    url, request = http.calls[0]
-    assert url == "https://api.mistral.ai/v1/chat/completions"
-    assert request["headers"]["Authorization"] == "Bearer test-key"
-    assert json.dumps(SCHEMA) in request["json"]["messages"][0]["content"]
-    assert request["json"]["response_format"] == {"type": "json_object"}
-    assert request["json"]["max_tokens"] == 3000
-
-
-def test_auth_failure_is_not_retried_or_leaked():
-    client, http = client_with(FakeResponse(status_code=401))
-    with pytest.raises(PolicyLensError, match="authentication failed") as error:
-        client.complete_json("system", "user", SCHEMA)
-    assert "provider error" not in str(error.value)
-    assert len(http.calls) == 1

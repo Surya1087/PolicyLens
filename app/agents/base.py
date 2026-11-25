@@ -6,7 +6,7 @@ from typing import Any, Iterable
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
-from llm import MistralClient
+from llm import OllamaClient
 from rag.models import Chunk, PolicyLensError
 
 
@@ -29,7 +29,7 @@ class FactResponse(StrictModel):
 
 
 def llm_or_default(llm: Any | None) -> Any:
-    return llm if llm is not None else MistralClient()
+    return llm if llm is not None else OllamaClient()
 
 
 def chunk_dict(chunk: Chunk) -> dict:

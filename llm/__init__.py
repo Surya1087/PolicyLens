@@ -1,3 +1,3 @@
-from .mistral_client import MistralClient
+from .ollama_client import OllamaClient
 
-__all__ = ["MistralClient"]
+__all__ = ["OllamaClient"]

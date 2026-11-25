@@ -10,7 +10,7 @@ Date: 2026-10-01. Platform tested: macOS arm64, Python 3.11.15.
 | `uv pip check --python .venv/bin/python` | All installed packages compatible |
 | `RUN_EMBEDDING_TESTS=1 .venv/bin/python -m pytest -q` | 49 passed, including real local embeddings and Chroma |
 | `python -m compileall -q app config rag llm prompts evaluation scripts tests` | Passed |
-| Streamlit AppTest: initial page without API key | No exceptions |
+| Streamlit AppTest: initial page without hosted key | No exceptions |
 | Streamlit AppTest: actual Optima Lite indexing | 18 chunks; six tabs rendered; no exceptions |
 | Local server `GET /_stcore/health` | `ok` |
 | All gold anchors checked against original physical PDF pages | Matched across ten text-readable brochures |
@@ -39,7 +39,7 @@ capture, blocked/non-finite metric handling, and Streamlit rendering.
   recovered 9/10 targets; approximate retrieval and small datasets should not be
   presented as a guarantee of perfect retrieval.
 - `evaluation/results/agent/results.csv`: **15 blocked rows** because no
-  no hosted-model API key was configured. No generated answers or RAGAS scores are claimed.
+  hosted-model API key was configured. No generated answers or RAGAS scores are claimed.
 - `evaluation/results/claim-full/results.csv`: **12 blocked rows** for the same
   reason. Actual model bill-extraction and citation precision/recall remain
   **unmeasured**. They are not replaced with gold-field retrieval scores.
@@ -49,7 +49,7 @@ Raw actual local contexts are in
 
 ## Remaining acceptance steps
 
-1. Add a Mistral API key to local `.env` and restart Streamlit.
+1. Install and start Ollama, then run `ollama pull qwen2.5:3b`.
 2. Run the README demonstration with the matching Optima Lite/cataract fixtures.
 3. Run both hosted-model evaluation commands; inspect their CSVs and actual
    raw-output records. Resolve provider limits or real model-output failures

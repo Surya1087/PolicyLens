@@ -58,11 +58,14 @@ def test_generated_bill_names_are_unique_and_present():
 
 def test_dotenv_is_loaded_before_cached_settings(tmp_path, monkeypatch):
     env = tmp_path / ".env"
-    env.write_text("MISTRAL_API_KEY=evaluation-test-key\n", encoding="utf-8")
-    monkeypatch.delenv("MISTRAL_API_KEY", raising=False)
+    env.write_text("POLICYLENS_OLLAMA_MODEL=qwen2.5:3b\nOLLAMA_BASE_URL=http://127.0.0.1:11434\n", encoding="utf-8")
+    monkeypatch.delenv("POLICYLENS_OLLAMA_MODEL", raising=False)
+    monkeypatch.delenv("OLLAMA_BASE_URL", raising=False)
     settings = load_evaluation_settings(env)
-    assert settings.mistral_api_key == "evaluation-test-key"
-    monkeypatch.delenv("MISTRAL_API_KEY", raising=False)
+    assert settings.ollama_model == "qwen2.5:3b"
+    assert settings.ollama_base_url == "http://127.0.0.1:11434"
+    monkeypatch.delenv("POLICYLENS_OLLAMA_MODEL", raising=False)
+    monkeypatch.delenv("OLLAMA_BASE_URL", raising=False)
     from config.settings import get_settings
     get_settings.cache_clear()
 
@@ -83,7 +86,7 @@ class _FakePipeline:
 
 
 def _settings():
-    return SimpleNamespace(mistral_api_key="fake-key", mistral_model="fake", embedding_model="fake")
+    return SimpleNamespace(ollama_model="qwen2.5:3b", ollama_base_url="http://127.0.0.1:11434", embedding_model="fake")
 
 
 def test_agent_uses_router_actual_context_and_writes_raw_records(tmp_path):
@@ -114,7 +117,7 @@ def test_retrieval_only_never_builds_router_and_failure_is_nonzero(tmp_path):
     pipeline = _FakePipeline(fail_retrieval=True)
     def forbidden_router(_):
         raise AssertionError("retrieval-only instantiated Router")
-    code = run("claim-retrieval", tmp_path, pipeline_factory=lambda: pipeline, router_factory=forbidden_router, settings_loader=lambda: SimpleNamespace(mistral_api_key=None))
+    code = run("claim-retrieval", tmp_path, pipeline_factory=lambda: pipeline, router_factory=forbidden_router, settings_loader=lambda: SimpleNamespace())
     assert code == 2
     assert "error" in (tmp_path / "results.csv").read_text()
 
@@ -154,10 +157,26 @@ def test_nonfinite_ragas_metric_marks_run_incomplete(tmp_path):
     assert "incomplete" in (tmp_path / "results.csv").read_text()
 
 
-def test_small_free_tier_batches_do_not_claim_full_suite(tmp_path):
+def test_small_local_model_batches_do_not_claim_full_suite(tmp_path):
     import csv
-    code = run("agent", tmp_path, case_ids=["qa-lite-room-rent"], settings_loader=lambda: SimpleNamespace(mistral_api_key=None))
-    assert code == 2
+    pipeline = _FakePipeline()
+
+    class FakeRouter:
+        def run(self, route, **kwargs):
+            context = {"id": "local", "policy_id": kwargs["policy_id"], "text": "Actual local context", "page": 1, "section": "", "source": "local.pdf"}
+            return {"answer": "local answer", "sources": [context], "retrieved_contexts": [context]}
+
+    code = run(
+        "agent",
+        tmp_path,
+        case_ids=["qa-lite-room-rent"],
+        pipeline_factory=lambda: pipeline,
+        router_factory=lambda _: FakeRouter(),
+        settings_loader=_settings,
+        ragas_scorer=lambda *args: {name: 0.5 for name in ("faithfulness", "answer_relevancy", "context_precision", "context_recall")},
+        ragas_runtime_factory=lambda _: (object(), object()),
+    )
+    assert code == 0
     with (tmp_path / "results.csv").open() as handle:
         rows = list(csv.DictReader(handle))
-    assert len(rows) == 1 and rows[0]["id"] == "qa-lite-room-rent"
+    assert len(rows) == 1 and rows[0]["id"] == "qa-lite-room-rent" and rows[0]["status"] == "success"

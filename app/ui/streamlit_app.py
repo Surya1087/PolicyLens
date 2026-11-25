@@ -157,12 +157,9 @@ def main() -> None:
             ingest(sample, sample.name, "policy")
         st.caption("Digital text PDFs only · 25 MB maximum · Scanned images are not supported.")
         with st.expander("Privacy & AI access"):
-            st.caption(f"AI access details (advanced) · Model: {settings.mistral_model}")
-            if settings.mistral_api_key:
-                st.success("Local API key is configured (not yet verified).")
-            else:
-                st.info("Add MISTRAL_API_KEY to your local .env, then restart Streamlit. Local indexing works without a key.")
-            st.caption("AI summaries, answers, and claim checks send relevant policy or bill text to Mistral AI. Avoid real patient identifiers. Embeddings and vector search run locally; no cloud vector database is used.")
+            st.caption(f"Local AI model · {settings.ollama_model}")
+            st.info("AI generation runs locally through Ollama. Document text is not sent to a hosted AI provider.")
+            st.caption("Local embeddings, vector search, reranking, and generation require model downloads and sufficient device memory. No API key or provider quota is needed.")
             delete_confirm = st.checkbox("I understand this permanently deletes local indexes.", key="delete_confirm")
             if st.button("Delete local PolicyLens data", disabled=not delete_confirm, use_container_width=True):
                 try:
@@ -200,20 +197,17 @@ def main() -> None:
         left.metric("Pages", len(policy.pages))
         middle.metric("Passages ready", len(policy.chunks))
         right.metric("Privacy", "Local index")
-    enabled = bool(settings.mistral_api_key)
-    if st.session_state.get("summary_pending") and enabled:
+    if st.session_state.get("summary_pending"):
         st.session_state["summary_pending"] = False
         analyze("Executive Summary", "summary", policy_id=policy.policy_id)
-    if not enabled:
-        st.info("To generate a summary or answer, add MISTRAL_API_KEY to your local .env and restart Streamlit. You can still inspect source pages.")
     tabs = st.tabs(["🧾 Quick summary", "💬 Ask a question", "🔎 Find things to review", "🏥 Check a bill", "⚖️ Compare policies", "📄 Read source pages"])
     with tabs[0]:
         action_intro(
             "Executive summary",
-            "Your summary is generated automatically after indexing when your Mistral API key is configured.",
+            "Your summary is generated automatically after indexing using the local Ollama model.",
             "This is a scoped summary, not an exhaustive contract review.",
         )
-        if st.button("Generate summary", disabled=not enabled or st.session_state.get("summary_pending", False), type="primary"):
+        if st.button("Generate summary", type="primary"):
             st.session_state["summary_pending"] = False
             analyze("Executive Summary", "summary", policy_id=policy.policy_id)
         if "summary" in st.session_state.results:
@@ -221,13 +215,13 @@ def main() -> None:
     with tabs[1]:
         action_intro("Ask a question", "This is the second tab. Ask about benefits, exclusions, numbers, or what to do next.")
         question = st.text_area("Your question", placeholder="For example: Is there a waiting period for hospital treatment?", max_chars=2000, key="question")
-        if st.button("Get an answer", disabled=not enabled or not question.strip(), type="primary"):
+        if st.button("Get an answer", disabled=not question.strip(), type="primary"):
             analyze("Ask Question", "question", policy_id=policy.policy_id, query=question.strip())
         if "question" in st.session_state.results:
             display_result(st.session_state.results["question"], "question")
     with tabs[2]:
         action_intro("Review possible risks", "Find limitations and discretionary wording that may deserve a closer look.", "This scan highlights wording to discuss; it does not decide whether a risk applies to you.")
-        if st.button("Scan for risks", disabled=not enabled, type="primary"):
+        if st.button("Scan for risks", type="primary"):
             analyze("Risk Analysis", "risk", policy_id=policy.policy_id)
         if "risk" in st.session_state.results:
             display_result(st.session_state.results["risk"], "risk")
@@ -247,7 +241,7 @@ def main() -> None:
         if signature != st.session_state.get("bill_signature"):
             st.session_state.results.pop("claim", None)
             st.session_state.bill_signature = signature
-        if st.button("Check Claim", disabled=not enabled or source is None, type="primary"):
+        if st.button("Check Claim", disabled=source is None, type="primary"):
             analyze("Claim Check", "claim", policy_id=policy.policy_id, bill_source=source, policy_start_date=start_iso)
         if "claim" in st.session_state.results:
             display_result(st.session_state.results["claim"], "claim")
@@ -259,7 +253,7 @@ def main() -> None:
         policy_b = st.session_state.get("policy_b")
         if policy_b:
             st.caption(f"Comparison document: {policy_b.filename}")
-        if st.button("Compare policies", disabled=not enabled or policy_b is None, type="primary"):
+        if st.button("Compare policies", disabled=policy_b is None, type="primary"):
             analyze("Compare Policies", "comparison", policy_id=policy.policy_id, policy_id_b=policy_b.policy_id)
         if "comparison" in st.session_state.results:
             display_result(st.session_state.results["comparison"], "comparison")
