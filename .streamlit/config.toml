@@ -3,12 +3,10 @@ address = "127.0.0.1"
 maxUploadSize = 25
 enableXsrfProtection = true
 enableCORS = true
+fileWatcherType = "none"
 
 [browser]
 gatherUsageStats = false
-
-[runner]
-fileWatcherType = "none"
 
 [theme]
 primaryColor = "#20639B"

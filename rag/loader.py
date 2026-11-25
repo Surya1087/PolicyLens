@@ -78,6 +78,10 @@ def load_pdf_details(
     """Load a PDF and return pages, warnings, bytes, and its display filename."""
 
     data, inferred_name = _read_bounded(source, max_bytes)
+    if b"%PDF-" not in data[:1024]:
+        raise PolicyLensError(
+            "The uploaded file does not look like a PDF. Re-download the original PDF and upload that file directly."
+        )
     try:
         from pypdf import PdfReader
         from pypdf.errors import PdfReadError

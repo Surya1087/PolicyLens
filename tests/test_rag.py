@@ -120,8 +120,10 @@ def test_loader_rejects_password_protection_and_malformed_input():
     writer.write(protected)
     with pytest.raises(PolicyLensError, match="Encrypted PDF"):
         load_pdf_details(protected.getvalue())
-    with pytest.raises(PolicyLensError, match="malformed|parsed"):
+    with pytest.raises(PolicyLensError, match="does not look like a PDF"):
         load_pdf_details(b"this is not a PDF")
+    with pytest.raises(PolicyLensError, match="does not look like a PDF"):
+        load_pdf_details(b"--Boundary\r\nContent-Disposition: form-data")
 
 
 def test_splitter_is_page_local_and_stable():

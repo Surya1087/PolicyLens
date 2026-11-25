@@ -10,16 +10,17 @@ from rag.models import PolicyLensError
 
 
 class FakeResponse:
-    def __init__(self, content=None, status_code=200):
+    def __init__(self, content=None, status_code=200, headers=None):
         self.payload = {
             "choices": [{"message": {"content": content}}],
         }
         self.status_code = status_code
+        self.headers = headers or {}
         self.request = httpx.Request("POST", "https://api.mistral.ai/v1/chat/completions")
 
     def raise_for_status(self):
         if self.status_code >= 400:
-            response = httpx.Response(self.status_code, request=self.request)
+            response = httpx.Response(self.status_code, headers=self.headers, request=self.request)
             raise httpx.HTTPStatusError("provider error", request=self.request, response=response)
 
     def json(self):
@@ -81,6 +82,13 @@ def test_rate_limit_retries_are_bounded(monkeypatch):
     )
     assert client.complete_json("system", "user", SCHEMA) == {"answer": "ok"}
     assert len(http.calls) == 2
+
+
+def test_exhausted_rate_limit_explains_wait():
+    response = FakeResponse(status_code=429, headers={"Retry-After": "30"})
+    client, _ = client_with(response, response)
+    with pytest.raises(PolicyLensError, match="Wait at least 30 second"):
+        client.complete_json("system", "user", SCHEMA)
 
 
 def test_nested_schema_refs_are_validated():
