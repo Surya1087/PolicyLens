@@ -40,7 +40,8 @@ class OllamaClient:
             "model": self.model,
             "stream": False,
             "format": "json",
-            "options": {"temperature": 0},
+            "keep_alive": "5m",
+            "options": {"temperature": 0, "num_ctx": 8192, "num_predict": 768},
             "messages": [
                 {"role": "system", "content": system + JSON_SCHEMA_INSTRUCTION + json.dumps(schema)},
                 {"role": "user", "content": user},

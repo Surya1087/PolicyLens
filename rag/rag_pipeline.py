@@ -93,14 +93,15 @@ class RAGPipeline:
         self.vector_store.index(policy)
         return policy
 
-    def retrieve(self, policy_id: str, query: str, k: int = 6) -> list[Chunk]:
+    def retrieve(self, policy_id: str, query: str, k: int = 6, *, rerank: bool = True) -> list[Chunk]:
         expanded = expand_clinical_query(query)
         vector_chunks = self.vector_store.retrieve(policy_id, expanded, max(k * 3, k))
         policy = self.vector_store.get_policy(policy_id)
         keyword_chunks = LocalBM25(policy.chunks).retrieve(expanded, max(k * 3, k))
         fused = reciprocal_rank_fusion([vector_chunks, keyword_chunks])[: max(k * 2, k)]
-        reranked = rerank_chunks(expanded, fused, self.settings.reranker_model)
-        return reranked[:k]
+        if rerank:
+            fused = rerank_chunks(expanded, fused, self.settings.reranker_model)
+        return fused[:k]
 
     def get_policy(self, policy_id: str) -> PolicyDocument:
         return self.vector_store.get_policy(policy_id)

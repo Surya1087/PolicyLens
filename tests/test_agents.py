@@ -20,8 +20,8 @@ class Pipeline:
         self.calls = []
         self.warnings = warnings or []
 
-    def retrieve(self, policy_id, query, k=6):
-        self.calls.append((policy_id, query, k))
+    def retrieve(self, policy_id, query, k=6, *, rerank=True):
+        self.calls.append((policy_id, query, k, rerank))
         return [c for c in self.chunks if c.policy_id == policy_id]
 
     def get_policy(self, policy_id):
@@ -69,6 +69,7 @@ def test_summary_retrieves_multiple_facets():
     from app.agents.summary_agent import SUMMARY_FACETS
     assert len(pipeline.calls) == len(SUMMARY_FACETS)
     assert {call[1] for call in pipeline.calls} == set(SUMMARY_FACETS)
+    assert all(call[3] is False for call in pipeline.calls)
 
 
 def test_risk_scans_every_chunk_and_reports_partial_state():

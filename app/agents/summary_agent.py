@@ -23,9 +23,9 @@ class SummaryAgent:
 
     def run(self, policy_id: str, query: str = "Executive summary") -> dict:
         chunks = unique_chunks(
-            chunk for facet in SUMMARY_FACETS for chunk in self.pipeline.retrieve(policy_id, facet, k=4)
+            chunk for facet in SUMMARY_FACETS for chunk in self.pipeline.retrieve(policy_id, facet, k=3, rerank=False)
         )
-        chunks = limit_context(chunks, max_chunks=8, max_chars=14000)
+        chunks = limit_context(chunks, max_chunks=6, max_chars=9000)
         if not chunks:
             return {"answer": "No policy excerpts were found for a scoped summary.", "sources": [], "retrieved_contexts": [], "scope": "No excerpts reviewed."}
         response = model_call(

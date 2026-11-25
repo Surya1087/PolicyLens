@@ -12,9 +12,9 @@ class ComparisonAgent:
         self.llm = llm_or_default(llm)
 
     def run(self, policy_id: str, policy_id_b: str, query: str = "Compare these policies") -> dict:
-        chunks_a = unique_chunks(c for facet in SUMMARY_FACETS for c in self.pipeline.retrieve(policy_id, facet, k=3))
-        chunks_b = unique_chunks(c for facet in SUMMARY_FACETS for c in self.pipeline.retrieve(policy_id_b, facet, k=3))
-        chunks = limit_context(unique_chunks([*chunks_a, *chunks_b]), max_chunks=10, max_chars=14000)
+        chunks_a = unique_chunks(c for facet in SUMMARY_FACETS for c in self.pipeline.retrieve(policy_id, facet, k=3, rerank=False))
+        chunks_b = unique_chunks(c for facet in SUMMARY_FACETS for c in self.pipeline.retrieve(policy_id_b, facet, k=3, rerank=False))
+        chunks = limit_context(unique_chunks([*chunks_a, *chunks_b]), max_chunks=8, max_chars=10000)
         if not chunks_a or not chunks_b:
             return {"answer": "Both policies need relevant excerpts before they can be compared.", "sources": [], "retrieved_contexts": [], "policy_ids": [policy_id, policy_id_b]}
         labels = {c.id: "A" for c in chunks_a} | {c.id: "B" for c in chunks_b}

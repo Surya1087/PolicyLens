@@ -111,7 +111,7 @@ def action_intro(title: str, description: str, note: str | None = None) -> None:
 def analyze(route: str, result_key: str, **kwargs) -> None:
     st.session_state.results.pop(result_key, None)
     try:
-        with st.spinner("Retrieving policy clauses and validating the analysis…"):
+        with st.spinner("Running the local AI model. The first response can take a minute; keep this page open…"):
             result = Router(pipeline()).run(route, **kwargs)
         st.session_state.results[result_key] = result
     except PolicyLensError as exc:

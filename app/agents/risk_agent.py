@@ -36,9 +36,9 @@ class RiskAgent:
 
     def run(self, policy_id: str, query: str = "Identify notable policy risks and ambiguities") -> dict:
         baseline_chunks = unique_chunks(
-            chunk for facet in RISK_FACETS for chunk in self.pipeline.retrieve(policy_id, facet, k=4)
+            chunk for facet in RISK_FACETS for chunk in self.pipeline.retrieve(policy_id, facet, k=3, rerank=False)
         )
-        baseline_chunks = limit_context(baseline_chunks, max_chunks=8, max_chars=14000)
+        baseline_chunks = limit_context(baseline_chunks, max_chunks=6, max_chars=9000)
         if baseline_chunks:
             response = model_call(
                 self.llm, FactResponse, RISK_BASELINE_SYSTEM,
