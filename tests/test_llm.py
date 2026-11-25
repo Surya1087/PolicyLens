@@ -10,17 +10,24 @@ from rag.models import PolicyLensError
 
 
 class FakeResponse:
-    def __init__(self, content=None, status_code=200, headers=None):
+    def __init__(self, content=None, status_code=200, headers=None, error_message=None):
         self.payload = {
             "choices": [{"message": {"content": content}}],
         }
+        if error_message:
+            self.payload = {"error": {"message": error_message}}
         self.status_code = status_code
         self.headers = headers or {}
         self.request = httpx.Request("POST", "https://api.mistral.ai/v1/chat/completions")
 
     def raise_for_status(self):
         if self.status_code >= 400:
-            response = httpx.Response(self.status_code, headers=self.headers, request=self.request)
+            response = httpx.Response(
+                self.status_code,
+                headers=self.headers,
+                json=self.payload,
+                request=self.request,
+            )
             raise httpx.HTTPStatusError("provider error", request=self.request, response=response)
 
     def json(self):
@@ -98,6 +105,13 @@ def test_exhausted_rate_limit_explains_wait():
         client.complete_json("system", "user", SCHEMA)
     assert "remaining-requests: 0" in str(error.value)
     assert len(http.calls) == 1
+
+
+def test_rate_limit_includes_bounded_provider_explanation():
+    response = FakeResponse(status_code=429, error_message="Insufficient balance for this request.")
+    client, _ = client_with(response)
+    with pytest.raises(PolicyLensError, match="Insufficient balance for this request"):
+        client.complete_json("system", "user", SCHEMA)
 
 
 def test_nested_schema_refs_are_validated():

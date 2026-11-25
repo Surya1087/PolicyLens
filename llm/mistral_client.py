@@ -76,6 +76,9 @@ class MistralClient:
                 status = exc.response.status_code
                 if status == 429:
                     details = _rate_limit_details(exc.response)
+                    provider_message = _provider_error_message(exc.response)
+                    if provider_message:
+                        details = f"Mistral says: {provider_message}. " + details
                     raise PolicyLensError(
                         "Mistral rate limit/quota rejected the request. "
                         + details
@@ -125,3 +128,16 @@ def _rate_limit_details(response: httpx.Response) -> str:
         if value:
             details.append(f"{header}: {value}.")
     return " ".join(details) if details else "No retry/reset details were included in the response."
+
+
+def _provider_error_message(response: httpx.Response) -> str:
+    """Expose concise provider error text without dumping arbitrary response data."""
+    try:
+        body = response.json()
+    except ValueError:
+        return ""
+    error = body.get("error") if isinstance(body, dict) else None
+    message = error.get("message") if isinstance(error, dict) else None
+    if not isinstance(message, str):
+        return ""
+    return " ".join(message.split())[:300]
