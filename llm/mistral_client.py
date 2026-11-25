@@ -74,14 +74,17 @@ class MistralClient:
             except httpx.HTTPStatusError as exc:
                 last_error = exc
                 status = exc.response.status_code
-                retry_after = exc.response.headers.get("Retry-After")
-                retryable = status == 429 or status in {408, 409, 500, 502, 503, 504}
+                if status == 429:
+                    details = _rate_limit_details(exc.response)
+                    raise PolicyLensError(
+                        "Mistral rate limit/quota rejected the request. "
+                        + details
+                        + " Check the Mistral console for model access, account quota, and API billing status."
+                    ) from exc
+                retryable = status in {408, 409, 500, 502, 503, 504}
                 if retryable and attempt < self.max_retries:
                     time.sleep(min(0.25 * (2**attempt), 1.0))
                     continue
-                if status == 429:
-                    suffix = f" Wait at least {retry_after} second(s) before retrying." if retry_after and retry_after.isdigit() else " Check your Mistral console for quota and rate-limit details, then retry later."
-                    raise PolicyLensError("Mistral rate limit reached." + suffix) from exc
                 if status in {401, 403}:
                     raise PolicyLensError("Mistral authentication failed. Check MISTRAL_API_KEY and account access.") from exc
                 if status == 408:
@@ -104,3 +107,21 @@ class MistralClient:
             except (KeyError, IndexError, TypeError, ValueError) as exc:
                 raise PolicyLensError("Mistral returned an invalid response structure.") from exc
         raise PolicyLensError("Mistral request failed.") from last_error
+
+
+def _rate_limit_details(response: httpx.Response) -> str:
+    headers = response.headers
+    details = []
+    retry_after = headers.get("Retry-After")
+    if retry_after:
+        details.append(f"Retry-After: {retry_after}.")
+    for header in (
+        "x-ratelimit-remaining-requests",
+        "x-ratelimit-reset-requests",
+        "x-ratelimit-remaining-tokens",
+        "x-ratelimit-reset-tokens",
+    ):
+        value = headers.get(header)
+        if value:
+            details.append(f"{header}: {value}.")
+    return " ".join(details) if details else "No retry/reset details were included in the response."

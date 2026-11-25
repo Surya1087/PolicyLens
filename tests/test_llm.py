@@ -77,7 +77,7 @@ def test_schema_is_validated():
 def test_rate_limit_retries_are_bounded(monkeypatch):
     monkeypatch.setattr("llm.mistral_client.time.sleep", lambda _: None)
     client, http = client_with(
-        FakeResponse(status_code=429),
+        FakeResponse(status_code=503),
         FakeResponse('{"answer":"ok"}'),
     )
     assert client.complete_json("system", "user", SCHEMA) == {"answer": "ok"}
@@ -85,10 +85,19 @@ def test_rate_limit_retries_are_bounded(monkeypatch):
 
 
 def test_exhausted_rate_limit_explains_wait():
-    response = FakeResponse(status_code=429, headers={"Retry-After": "30"})
-    client, _ = client_with(response, response)
-    with pytest.raises(PolicyLensError, match="Wait at least 30 second"):
+    response = FakeResponse(
+        status_code=429,
+        headers={
+            "Retry-After": "30",
+            "x-ratelimit-remaining-requests": "0",
+            "x-ratelimit-reset-requests": "30s",
+        },
+    )
+    client, http = client_with(response)
+    with pytest.raises(PolicyLensError, match="Retry-After: 30") as error:
         client.complete_json("system", "user", SCHEMA)
+    assert "remaining-requests: 0" in str(error.value)
+    assert len(http.calls) == 1
 
 
 def test_nested_schema_refs_are_validated():
