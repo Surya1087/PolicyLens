@@ -1,3 +1,3 @@
-from .groq_client import GroqClient
+from .mistral_client import MistralClient
 
-__all__ = ["GroqClient"]
+__all__ = ["MistralClient"]

@@ -9,7 +9,7 @@ PolicyLens explains uploaded insurance documents with page-cited evidence. Its c
 
 The source, UI, 11 reference insurance PDFs, 12 synthetic medical bills, test suite, and evaluation runners are included. See `docs/validation.md` for checks actually performed.
 
-**Live Groq generation and RAGAS scores still require your own free-tier API key.** Missing-key result files explicitly contain `blocked` rows, not invented scores. Passing automated tests is not a guarantee of clinical, legal, or model accuracy. Nothing has been deployed or pushed to GitHub; Git preparation is deferred until you confirm the local run.
+**Live Mistral generation and RAGAS scores require your own Mistral API key.** Check Mistral's current API plan and pricing before use; API access may have limits or costs. Missing-key result files explicitly contain `blocked` rows, not invented scores. Passing automated tests is not a guarantee of clinical, legal, or model accuracy.
 
 ## 1. Open locally in VS Code
 
@@ -43,14 +43,13 @@ If PowerShell blocks activation, use `.\.venv\Scripts\python.exe` in place of `p
 
 In VS Code, run **Python: Select Interpreter** and select this folder's `.venv` interpreter.
 
-### Free Groq setup
+### Mistral API setup
 
-1. Create a developer account at <https://console.groq.com/> and stay on the **free tier**; do not activate billing. A paid subscription/card is not required for the free developer tier, subject to Groq's current account availability and limits.
-2. Generate a key at <https://console.groq.com/keys>.
-3. Open your **local `.env`**, and set `GROQ_API_KEY` to that key. Leave `GROQ_MODEL=llama-3.3-70b-versatile` unless Groq documents a supported free-tier Llama replacement.
+1. Create a Mistral developer account and generate an API key at <https://console.mistral.ai/>.
+2. Open your **local `.env`** and set `MISTRAL_API_KEY` to that key. The default model is `mistral-small-latest`.
 4. Never paste a key into source code, screenshots, evaluation reports, or chat. Never upload `.env`.
 
-Indexing and retrieval run without a Groq key. Q&A, summaries, risk explanations, bill extraction and claim clause selection need it. A configuration check is not an authentication check; the first request verifies access. The supplied LIC Jeevan Labh PDF is scanned and is intentionally rejected; use a text-readable sample such as Optima Lite for the demonstration.
+Indexing and retrieval run without a Mistral key. Q&A, summaries, risk explanations, bill extraction and claim clause selection need it. A configuration check is not an authentication check; the first request verifies access. The supplied LIC Jeevan Labh PDF is scanned and is intentionally rejected; use a text-readable sample such as Optima Lite for the demonstration.
 
 ## 2. Run
 
@@ -69,7 +68,7 @@ The first indexing operation downloads the public `sentence-transformers/all-Min
 ### Suggested demonstration
 
 1. Select `OptimaLiteBrochure(6)-775316069816.pdf` in the sidebar and click **Index selected sample**.
-2. Read the privacy notice before using AI features; relevant policy or bill text is sent to Groq for generation.
+2. Read the privacy notice before using AI features; relevant policy or bill text is sent to Mistral for generation.
 3. Generate an **Executive Summary**. Ask: “What is the room rent limit?”
 4. Run **Risk Analysis**; inspect the separate ambiguity scan and any partial-review warnings.
 5. In **Check Claim**, choose `health_cataract.pdf`. Optionally provide `2025-06-01` as the fictional policy start date from its test case, then click **Check Claim**.
@@ -112,7 +111,8 @@ policylens/
     rag_pipeline.py          # Shared ingestion/retrieval, clinical query expansion
     bill_extractor.py        # Strict model extraction + evidence validation
     models.py
-  llm/groq_client.py          # JSON schema instructions/validation, bounded retries
+  llm/mistral_client.py       # Mistral API, JSON schema validation, bounded retries
+  llm/schema.py               # Shared JSON Schema validation
   prompts/prompt.py           # Centralized prompts and safety instructions
   config/                    # Environment settings, curated phrases/synonyms
   evaluation/                # Real-output RAGAS and independent claim metrics
@@ -129,7 +129,7 @@ policylens/
   requirements-lock.txt      # Resolved dependency snapshot for reproduction
 ```
 
-Flow: **PDF → page text → chunks → local embeddings → policy-filtered Chroma → agent prompt → Groq JSON → schema/evidence checks → cited UI output**.
+Flow: **PDF → page text → chunks → local embeddings → policy-filtered Chroma → agent prompt → Mistral JSON → schema/evidence checks → cited UI output**.
 
 Claim flow reuses the **same** retrieval pipeline after bill extraction. It never creates a second embedding system. Every agent has `__init__(pipeline, llm=None)` and `.run(...)`; `Router.run(route, **kwargs)` chooses the agent. See `rag/API.md` for the retrieval contract.
 
@@ -141,17 +141,17 @@ This is a local academic application, not a certified insurer decision engine or
 python -m pytest -q
 python scripts/generate_bills.py
 
-# Real local embeddings/retrieval, with gold bill fields; no Groq key needed:
+# Real local embeddings/retrieval, with gold bill fields; no Mistral key needed:
 python -m evaluation.claim_evaluator --mode retrieval-only --output evaluation/results/claim-retrieval
 
-# Real answers + actual retrieved contexts, judged by Groq through RAGAS:
+# Real answers + actual retrieved contexts, judged by Mistral through RAGAS:
 python -m evaluation.evaluator --mode agent --output evaluation/results/agent
 
 # Actual PDF bill extraction, retrieval and emitted clause citations:
 python -m evaluation.claim_evaluator --mode full --output evaluation/results/claim-full
 ```
 
-The core evaluation contains independent references for Q&A, summary and risk tasks. `test_cases.py` loads **questions and gold references**, not prewritten system answers. The evaluator invokes the real agents and stores the resulting answers and exact contexts in `raw_agent_records.jsonl`. RAGAS uses Groq plus local embeddings explicitly; there is no implicit paid OpenAI judge. OpenAI-related packages may be installed as RAGAS transitive dependencies but are not called by this project.
+The core evaluation contains independent references for Q&A, summary and risk tasks. `test_cases.py` loads **questions and gold references**, not prewritten system answers. The evaluator invokes the real agents and stores the resulting answers and exact contexts in `raw_agent_records.jsonl`. RAGAS uses Mistral via its OpenAI-compatible API endpoint plus local embeddings.
 
 Each evaluation directory contains `results.csv`, `details.csv` and `aggregates.json`. Blank cells mean **not measured**, not a score of zero. Missing keys or incomplete runs exit with status `2`. Synthetic bill extraction scores, clause retrieval scores and actual quoted-citation scores are kept separate. Negative/insufficient-evidence cases have no invented gold clause; their precision/recall are not applicable.
 
@@ -159,7 +159,7 @@ This is a small, development-time labelled suite, not an independent clinical va
 
 ## Privacy, safety and limitations
 
-- **Local-first is not fully offline:** selected policy passages and uploaded bill text are sent to Groq when you request AI analysis. Do not use real health identifiers for demonstrations. Review Groq's data policies before sharing sensitive documents.
+- **Local-first is not fully offline:** selected policy passages and uploaded bill text are sent to Mistral when you request AI analysis. Do not use real health identifiers for demonstrations. Review Mistral's data policies before sharing sensitive documents.
 - The UI keeps uploaded original bytes in session memory, but extracted policy text and embeddings persist in `.local_data/sessions/`. CLI evaluation uses `.local_data/chroma/`. These files are **not encrypted**. “Clear on-screen session” does not erase disk files. Stop Streamlit and delete `.local_data/` when you want to erase local indexes; delete any exported JSON reports separately.
 - API keys load only from environment/local `.env`. No key is written into output or logged. Streamlit usage telemetry, Chroma analytics, RAGAS tracking and LangSmith tracing are disabled by this application.
 - Physical page numbers are exact; headings are best-effort extracted strings, not invented section numbers. Source-page text is available for inspection. PDF table extraction can scramble layout, so always verify numeric context in the original PDF.
@@ -174,10 +174,10 @@ This is a small, development-time labelled suite, not an independent clinical va
 
 | Symptom | What to do |
 |---|---|
-| Missing API key | Copy `.env_example` to `.env`, populate `GROQ_API_KEY`, stop and restart Streamlit. |
-| Groq authentication/model error | Check the key and model in your Groq console; keep the account on its free tier. |
-| Rate limit or timeout | Wait for quota recovery and retry manually. SDK retries are bounded; no infinite retry loop. |
-| Model JSON rejected | Retry once; unsupported output is deliberately not displayed. Inspect provider/model compatibility if it recurs. |
+| Missing API key | Copy `.env_example` to `.env`, populate `MISTRAL_API_KEY`, stop and restart Streamlit. |
+| Mistral authentication/model error | Check the key and model in your Mistral console and confirm API access is enabled. |
+| Rate limit or timeout | Wait for quota recovery and retry manually. Retries are bounded; no infinite retry loop. |
+| Model JSON rejected | Retry; unsupported output is deliberately not displayed. Inspect provider/model compatibility if it recurs. |
 | First indexing cannot download model | Check internet/proxy/certificate setup. Do not disable TLS verification. Hugging Face model download requires internet once. |
 | “No extractable text” | Use a digital PDF; scans are out of scope. |
 | Native library/import error | Recreate a Python 3.11 64-bit venv and install the pinned dependencies; do not mix global packages. |

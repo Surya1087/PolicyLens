@@ -6,7 +6,7 @@ from typing import Any, Iterable
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
-from llm import GroqClient
+from llm import MistralClient
 from rag.models import Chunk, PolicyLensError
 
 
@@ -29,7 +29,7 @@ class FactResponse(StrictModel):
 
 
 def llm_or_default(llm: Any | None) -> Any:
-    return llm if llm is not None else GroqClient()
+    return llm if llm is not None else MistralClient()
 
 
 def chunk_dict(chunk: Chunk) -> dict:
@@ -54,7 +54,7 @@ def unique_chunks(chunks: Iterable[Chunk]) -> list[Chunk]:
 
 
 def limit_context(chunks: Iterable[Chunk], *, max_chunks: int = 8, max_chars: int = 16000) -> list[Chunk]:
-    """Keep prompts below free-tier request limits while preserving retrieval order."""
+    """Keep prompts below provider request limits while preserving retrieval order."""
     selected: list[Chunk] = []
     total = 0
     for chunk in chunks:

@@ -1,7 +1,7 @@
 """Shared constants and conservative language-risk patterns."""
 
 DEFAULT_EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
-DEFAULT_GROQ_MODEL = "llama-3.3-70b-versatile"
+DEFAULT_MISTRAL_MODEL = "mistral-small-latest"
 DEFAULT_MAX_PDF_BYTES = 25 * 1024 * 1024
 DEFAULT_CHUNK_SIZE = 1_000
 DEFAULT_CHUNK_OVERLAP = 180

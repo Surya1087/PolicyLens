@@ -15,7 +15,7 @@ from .constants import (
     DEFAULT_CHUNK_OVERLAP,
     DEFAULT_CHUNK_SIZE,
     DEFAULT_EMBEDDING_MODEL,
-    DEFAULT_GROQ_MODEL,
+    DEFAULT_MISTRAL_MODEL,
     DEFAULT_MAX_PDF_BYTES,
     DEFAULT_RETRIEVAL_K,
     DEFAULT_RERANKER_MODEL,
@@ -37,8 +37,8 @@ def _positive_int(name: str, default: int) -> int:
 
 @dataclass(frozen=True, slots=True)
 class Settings:
-    groq_api_key: str | None = field(default_factory=lambda: os.getenv("GROQ_API_KEY") or None)
-    groq_model: str = field(default_factory=lambda: os.getenv("GROQ_MODEL", DEFAULT_GROQ_MODEL))
+    mistral_api_key: str | None = field(default_factory=lambda: os.getenv("MISTRAL_API_KEY") or None)
+    mistral_model: str = field(default_factory=lambda: os.getenv("MISTRAL_MODEL", DEFAULT_MISTRAL_MODEL))
     data_dir: Path = field(
         default_factory=lambda: Path(os.getenv("POLICYLENS_DATA_DIR", str(PROJECT_ROOT / ".local_data"))).expanduser().resolve()
     )

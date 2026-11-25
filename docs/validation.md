@@ -16,7 +16,7 @@ Date: 2026-10-01. Platform tested: macOS arm64, Python 3.11.15.
 | All gold anchors checked against original physical PDF pages | Matched across ten text-readable brochures |
 | Index and query every supported reference PDF | All ten succeeded; the scanned LIC PDF was correctly rejected |
 | Regenerate 12 synthetic medical bills | Byte-for-byte identical |
-| RAGAS, LangChain Groq and local embedding integration imports | Succeeded |
+| RAGAS and local embedding integration imports | Succeeded |
 
 The automated suite includes schema transmission/validation, malformed JSON,
 authentication/rate-limit handling, PDF encryption and malformed/scanned inputs,
@@ -39,7 +39,7 @@ capture, blocked/non-finite metric handling, and Streamlit rendering.
   recovered 9/10 targets; approximate retrieval and small datasets should not be
   presented as a guarantee of perfect retrieval.
 - `evaluation/results/agent/results.csv`: **15 blocked rows** because no
-  `GROQ_API_KEY` was configured. No generated answers or RAGAS scores are claimed.
+  no hosted-model API key was configured. No generated answers or RAGAS scores are claimed.
 - `evaluation/results/claim-full/results.csv`: **12 blocked rows** for the same
   reason. Actual model bill-extraction and citation precision/recall remain
   **unmeasured**. They are not replaced with gold-field retrieval scores.
@@ -49,7 +49,7 @@ Raw actual local contexts are in
 
 ## Remaining acceptance steps
 
-1. Add your free-tier key to local `.env` and restart Streamlit.
+1. Add a Mistral API key to local `.env` and restart Streamlit.
 2. Run the README demonstration with the matching Optima Lite/cataract fixtures.
 3. Run both hosted-model evaluation commands; inspect their CSVs and actual
    raw-output records. Resolve provider limits or real model-output failures

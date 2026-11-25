@@ -7,6 +7,9 @@ enableCORS = true
 [browser]
 gatherUsageStats = false
 
+[runner]
+fileWatcherType = "none"
+
 [theme]
 primaryColor = "#20639B"
 backgroundColor = "#F6FAFD"

@@ -58,11 +58,11 @@ def test_generated_bill_names_are_unique_and_present():
 
 def test_dotenv_is_loaded_before_cached_settings(tmp_path, monkeypatch):
     env = tmp_path / ".env"
-    env.write_text("GROQ_API_KEY=evaluation-test-key\n", encoding="utf-8")
-    monkeypatch.delenv("GROQ_API_KEY", raising=False)
+    env.write_text("MISTRAL_API_KEY=evaluation-test-key\n", encoding="utf-8")
+    monkeypatch.delenv("MISTRAL_API_KEY", raising=False)
     settings = load_evaluation_settings(env)
-    assert settings.groq_api_key == "evaluation-test-key"
-    monkeypatch.delenv("GROQ_API_KEY", raising=False)
+    assert settings.mistral_api_key == "evaluation-test-key"
+    monkeypatch.delenv("MISTRAL_API_KEY", raising=False)
     from config.settings import get_settings
     get_settings.cache_clear()
 
@@ -83,7 +83,7 @@ class _FakePipeline:
 
 
 def _settings():
-    return SimpleNamespace(groq_api_key="fake-key", groq_model="fake", embedding_model="fake")
+    return SimpleNamespace(mistral_api_key="fake-key", mistral_model="fake", embedding_model="fake")
 
 
 def test_agent_uses_router_actual_context_and_writes_raw_records(tmp_path):
@@ -114,7 +114,7 @@ def test_retrieval_only_never_builds_router_and_failure_is_nonzero(tmp_path):
     pipeline = _FakePipeline(fail_retrieval=True)
     def forbidden_router(_):
         raise AssertionError("retrieval-only instantiated Router")
-    code = run("claim-retrieval", tmp_path, pipeline_factory=lambda: pipeline, router_factory=forbidden_router, settings_loader=lambda: SimpleNamespace(groq_api_key=None))
+    code = run("claim-retrieval", tmp_path, pipeline_factory=lambda: pipeline, router_factory=forbidden_router, settings_loader=lambda: SimpleNamespace(mistral_api_key=None))
     assert code == 2
     assert "error" in (tmp_path / "results.csv").read_text()
 
@@ -156,7 +156,7 @@ def test_nonfinite_ragas_metric_marks_run_incomplete(tmp_path):
 
 def test_small_free_tier_batches_do_not_claim_full_suite(tmp_path):
     import csv
-    code = run("agent", tmp_path, case_ids=["qa-lite-room-rent"], settings_loader=lambda: SimpleNamespace(groq_api_key=None))
+    code = run("agent", tmp_path, case_ids=["qa-lite-room-rent"], settings_loader=lambda: SimpleNamespace(mistral_api_key=None))
     assert code == 2
     with (tmp_path / "results.csv").open() as handle:
         rows = list(csv.DictReader(handle))

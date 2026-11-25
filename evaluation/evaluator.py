@@ -61,7 +61,7 @@ def _policy(pipeline: Any, filename: str, cache: dict[str, str]) -> str:
 def _blocked(cases: list[dict[str, Any]], out: Path, mode: str) -> int:
     rows = [{
         "id": case["id"], "kind": case["kind"], "route": case["route"],
-        "status": "blocked", "error": "GROQ_API_KEY is missing", **{field: None for field in FIELDS},
+        "status": "blocked", "error": "MISTRAL_API_KEY is missing", **{field: None for field in FIELDS},
     } for case in cases]
     raw_name = "raw_claim_records.jsonl" if mode == "claim-full" else "raw_agent_records.jsonl"
     _write(rows, out, [], raw_name)
@@ -88,10 +88,15 @@ def _default_router_factory(pipeline: Any) -> Any:
 
 
 def _default_ragas_runtime(settings: Any) -> tuple[Any, Any]:
-    from langchain_groq import ChatGroq
+    from langchain_openai import ChatOpenAI
     from langchain_huggingface import HuggingFaceEmbeddings
     return (
-        ChatGroq(api_key=settings.groq_api_key, model=settings.groq_model, max_retries=1),
+        ChatOpenAI(
+            api_key=settings.mistral_api_key,
+            model=settings.mistral_model,
+            base_url="https://api.mistral.ai/v1",
+            max_retries=1,
+        ),
         HuggingFaceEmbeddings(model_name=settings.embedding_model),
     )
 
@@ -115,7 +120,7 @@ def run(
             raise ValueError("Unknown evaluation case ID(s): " + ", ".join(sorted(unknown)))
         cases = [case for case in cases if case["id"] in case_ids]
     settings = settings_loader()
-    if mode in {"agent", "claim-full"} and not settings.groq_api_key:
+    if mode in {"agent", "claim-full"} and not settings.mistral_api_key:
         return _blocked(cases, out, mode)
 
     pipeline = (pipeline_factory or _default_pipeline_factory)()
@@ -213,7 +218,7 @@ def main() -> int:
     parser.add_argument("--mode", choices=["agent", "claim-retrieval", "claim-full"], required=True)
     parser.add_argument("--output", type=Path, default=ROOT / "evaluation" / "results")
     parser.add_argument("--retries", type=int, default=1)
-    parser.add_argument("--case-id", action="append", help="Run only this case; repeat to select a small free-tier batch")
+    parser.add_argument("--case-id", action="append", help="Run only this case; repeat to select a small API batch")
     args = parser.parse_args()
     return run(args.mode, args.output, max(0, min(args.retries, 2)), case_ids=args.case_id)
 

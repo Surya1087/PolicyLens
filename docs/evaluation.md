@@ -4,8 +4,8 @@ The evaluation records live pipeline retrieval and actual `app.agents.Router` ou
 never substitutes canned answers or contexts. Q&A, executive summary, and risk
 analysis use independently written reference answers and verbatim anchors tied
 to physical brochure pages. RAGAS 0.2.15 scores successful live generations for
-faithfulness, answer relevancy, context precision, and context recall using Groq
-as judge and the configured local Hugging Face embeddings (no OpenAI default).
+faithfulness, answer relevancy, context precision, and context recall using Mistral
+as judge and the configured local Hugging Face embeddings.
 
 ## Commands
 
@@ -17,7 +17,7 @@ python -m evaluation.claim_evaluator --mode full --output evaluation/results/cla
 pytest -q tests/test_evaluation.py
 ```
 
-For free-tier quotas, start with one case and a separate output folder:
+For Mistral API quota management, start with one case and a separate output folder:
 
 ```bash
 python -m evaluation.evaluator --mode agent --case-id qa-lite-room-rent --output evaluation/results/single-qa
@@ -42,7 +42,7 @@ Each output directory contains the primary per-case `results.csv`, a backwards-c
 `raw_agent_records.jsonl` with the real question, answer, `retrieved_contexts`,
 and independent reference. Full claim mode records `raw_claim_records.jsonl`.
 No canned output is written. Empty cells mean not measured or blocked; they
-are not zeros. Missing `GROQ_API_KEY`, failed generation, or incomplete RAGAS
+are not zeros. Missing `MISTRAL_API_KEY`, failed generation, or incomplete RAGAS
 metrics produces blocked/error rows and exit status 2. Execution is serial with
 at most two retries (`--retries`, default 1) to limit API pressure.
 
