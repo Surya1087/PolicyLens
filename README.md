@@ -72,7 +72,7 @@ The first indexing operation downloads the public `sentence-transformers/all-Min
 ### Suggested demonstration
 
 1. Select `OptimaLiteBrochure(6)-775316069816.pdf` in the sidebar and click **Index selected sample**.
-2. The executive summary is generated automatically after indexing with local Ollama. Ask: “What is the room rent limit?”
+2. The executive summary is generated automatically after indexing with local Ollama in the background, so the other tabs remain usable while it runs. Ask: “What is the room rent limit?”
 4. Run **Risk Analysis**; inspect the separate ambiguity scan and any partial-review warnings.
 5. In **Check Claim**, choose `health_cataract.pdf`. Optionally provide `2025-06-01` as the fictional policy start date from its test case, then click **Check Claim**.
 6. Inspect extracted bill fields, the cited cataract waiting-period passage (physical page 11), and the unverified date interval. This is not a claim verdict.
@@ -85,7 +85,7 @@ The cataract bill says **phacoemulsification**, not cataract. Clinical query exp
 - Digital PDF parsing with physical-page provenance, page-local overlapping chunks, normalized local embeddings, and persistent policy-isolated Chroma retrieval.
 - Free/local hybrid retrieval combines BM25 keyword matching with normalized vector search, reciprocal-rank fusion, and an optional local cross-encoder reranker.
 - Evidence confidence metadata identifies weak or limited local support without claiming model certainty.
-- Grounded Q&A; multi-facet summary of benefits, optional covers, exclusions, numbers and claim steps; cited comparison of two policies.
+- Grounded Q&A; a background-generated, topic-grouped plain-language summary of benefits, optional covers, exclusions, numbers and claim steps; cited comparison of two policies.
 - Risk review of waiting periods, deductibles, exclusions and limitations. A full extracted-text regex scan finds discretionary language, followed by batched LLM confirmation and explanations.
 - Strict JSON bill extraction: procedure/diagnosis, date, amount, currency, hospital and explicitly stated network status. Each field must carry matching source-page evidence; unsupported fields become `null`.
 - Safe claim cross-checks: the model selects predefined clause topics and verbatim citations. **The application—not generated prose—renders the findings.** Only exact quotations from retrieved passages survive validation; `claim_status` is always `not_assessed`.

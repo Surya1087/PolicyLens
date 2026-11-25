@@ -57,7 +57,7 @@ def test_json_response_and_schema_are_validated():
     assert url == "http://127.0.0.1:11434/api/chat"
     assert request["json"]["model"] == "qwen2.5:3b"
     assert request["json"]["stream"] is False
-    assert request["json"]["format"] == "json"
+    assert request["json"]["format"] == SCHEMA
     assert request["json"]["options"]["num_predict"] == 768
     assert '"answer"' in request["json"]["messages"][0]["content"]
 

@@ -5,10 +5,12 @@ import hashlib
 import json
 import sys
 import shutil
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from uuid import uuid4
 
 ROOT = Path(__file__).resolve().parents[2]
+SUMMARY_EXECUTOR = ThreadPoolExecutor(max_workers=2, thread_name_prefix="policylens-summary")
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
@@ -72,8 +74,23 @@ def display_result(result: dict, key: str) -> None:
         st.caption("Verify these extracted values against your bill. A missing value is not inferred.")
         st.subheader("Clause cross-check — no decision")
     with st.container(border=True):
-        st.markdown("#### Your plain-language result")
-        st.text(result.get("answer", "No supported answer was returned."))
+        title = {
+            "summary": "Executive summary",
+            "question": "Answer to your question",
+            "risk": "Review findings",
+            "claim": "Claim document cross-check",
+            "comparison": "Policy comparison",
+        }.get(key, "Plain-language result")
+        st.markdown(f"#### {title}")
+        answer = result.get("answer", "No supported answer was returned.")
+        if key == "summary":
+            for line in answer.splitlines():
+                if line.startswith("### "):
+                    st.markdown(f"**{line[4:]}**")
+                elif line:
+                    st.text(line.removeprefix("- "))
+        else:
+            st.text(answer)
     if result.get("scope"):
         st.caption(result["scope"])
     if "scan" in result:
@@ -118,6 +135,39 @@ def analyze(route: str, result_key: str, **kwargs) -> None:
         st.error(str(exc))
     except Exception:
         st.error("Analysis could not finish. Check the local setup and try again. No result from this attempt is shown.")
+
+
+def start_summary(policy_id: str) -> None:
+    st.session_state.results.pop("summary", None)
+    future = SUMMARY_EXECUTOR.submit(
+        Router(pipeline()).run,
+        "Executive Summary",
+        policy_id=policy_id,
+    )
+    st.session_state["summary_job"] = (policy_id, future)
+
+
+@st.fragment(run_every="2s")
+def summary_panel(policy_id: str) -> None:
+    summary_job = st.session_state.get("summary_job")
+    if summary_job and summary_job[0] != policy_id:
+        st.session_state.pop("summary_job", None)
+        summary_job = None
+    if summary_job:
+        _, future = summary_job
+        if future.done():
+            try:
+                st.session_state.results["summary"] = future.result()
+            except PolicyLensError as exc:
+                st.error(f"Automatic summary failed: {exc}")
+            except Exception:
+                st.error("Automatic summary failed. Try generating it again from the summary tab.")
+            finally:
+                st.session_state.pop("summary_job", None)
+        else:
+            st.info("Your summary is being prepared locally in the background. You can ask a question or use another tab meanwhile.")
+    if "summary" in st.session_state.results:
+        display_result(st.session_state.results["summary"], "summary")
 
 
 def ingest(source, filename: str, slot: str) -> None:
@@ -199,7 +249,7 @@ def main() -> None:
         right.metric("Privacy", "Local index")
     if st.session_state.get("summary_pending"):
         st.session_state["summary_pending"] = False
-        analyze("Executive Summary", "summary", policy_id=policy.policy_id)
+        start_summary(policy.policy_id)
     tabs = st.tabs(["🧾 Quick summary", "💬 Ask a question", "🔎 Find things to review", "🏥 Check a bill", "⚖️ Compare policies", "📄 Read source pages"])
     with tabs[0]:
         action_intro(
@@ -208,10 +258,8 @@ def main() -> None:
             "This is a scoped summary, not an exhaustive contract review.",
         )
         if st.button("Generate summary", type="primary"):
-            st.session_state["summary_pending"] = False
-            analyze("Executive Summary", "summary", policy_id=policy.policy_id)
-        if "summary" in st.session_state.results:
-            display_result(st.session_state.results["summary"], "summary")
+            start_summary(policy.policy_id)
+        summary_panel(policy.policy_id)
     with tabs[1]:
         action_intro("Ask a question", "This is the second tab. Ask about benefits, exclusions, numbers, or what to do next.")
         question = st.text_area("Your question", placeholder="For example: Is there a waiting period for hospital treatment?", max_chars=2000, key="question")

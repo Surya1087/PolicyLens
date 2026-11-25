@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import re
-from typing import Any, Iterable
+from typing import Any, Iterable, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
@@ -20,12 +20,29 @@ class Citation(StrictModel):
 
 
 class Fact(StrictModel):
-    statement: str
-    citations: list[Citation] = Field(min_length=1)
+    statement: str = Field(min_length=1, max_length=400)
+    citations: list[Citation] = Field(min_length=1, max_length=2)
 
 
 class FactResponse(StrictModel):
     items: list[Fact] = Field(max_length=30)
+
+
+SummaryTopic = Literal[
+    "Coverage and benefits",
+    "Costs and limits",
+    "Exclusions and waiting periods",
+    "Claims and next steps",
+    "Policy details",
+]
+
+
+class SummaryFact(Fact):
+    topic: SummaryTopic
+
+
+class SummaryResponse(StrictModel):
+    items: list[SummaryFact] = Field(max_length=10)
 
 
 def llm_or_default(llm: Any | None) -> Any:
@@ -117,7 +134,15 @@ def validate_facts(items: list[Fact], chunks: Iterable[Chunk]) -> tuple[list[Fac
 
 
 def render_facts(items: Iterable[Fact]) -> str:
-    return "\n".join(f"- {item.statement} " + " ".join(f"[{c.id}]" for c in item.citations) for item in items)
+    lines: list[str] = []
+    current_topic = None
+    for item in items:
+        topic = getattr(item, "topic", None)
+        if topic and topic != current_topic:
+            lines.append(f"### {topic}")
+            current_topic = topic
+        lines.append(f"- {item.statement} " + " ".join(f"[{c.id}]" for c in item.citations))
+    return "\n".join(lines)
 
 
 def fact_result(items: list[Fact], chunks: Iterable[Chunk], *, empty: str, extras: dict | None = None, retrieved: Iterable[Chunk] | None = None) -> dict:

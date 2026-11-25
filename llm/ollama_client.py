@@ -39,7 +39,7 @@ class OllamaClient:
         request = {
             "model": self.model,
             "stream": False,
-            "format": "json",
+            "format": schema,
             "keep_alive": "5m",
             "options": {"temperature": 0, "num_ctx": 8192, "num_predict": 768},
             "messages": [

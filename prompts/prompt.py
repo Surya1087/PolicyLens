@@ -14,9 +14,11 @@ QA_TASK = "Answer the user question using only the excerpts."
 
 SUMMARY_SYSTEM = UNTRUSTED_DATA_RULES + """
 \nCreate a scoped executive overview. Do not call it exhaustive and do not infer omitted terms.
-Cover only facts supported by the provided multi-facet excerpts.
+Write short, complete plain-language explanations, not fragments or copied field labels. Never put
+JSON, braces, schema fields, or code inside a statement. Assign each supported fact to the closest
+summary topic. Omit a topic when the excerpts do not support it.
 """
-SUMMARY_TASK = "Write a concise, scoped executive overview grouped by topic."
+SUMMARY_TASK = "Write a concise plain-language overview with at most two useful facts per topic."
 
 RISK_BASELINE_SYSTEM = UNTRUSTED_DATA_RULES + """
 \nIdentify supported gaps, exclusions, waiting periods, deductibles, cost limits, duties, and

@@ -46,6 +46,30 @@ def test_ai_actions_are_enabled_without_api_key(monkeypatch):
     assert not next(button for button in app.button if button.label == "Get an answer").disabled
 
 
+def test_question_result_is_kept_separate_from_summary(monkeypatch):
+    from app.agents.router import Router
+
+    monkeypatch.setattr(
+        Router,
+        "run",
+        lambda self, route, **kwargs: {
+            "answer": f"{route}: {kwargs['query']}",
+            "sources": [],
+            "retrieved_contexts": [],
+        },
+    )
+    chunk = Chunk("test:p1", "test", "Waiting period: 24 months.", 1, "Waiting period", "example.pdf")
+    app = AppTest.from_file(str(ROOT / "app/ui/streamlit_app.py"))
+    app.session_state["policy"] = PolicyDocument("test", "example.pdf", [Page(1, chunk.text)], [chunk], [])
+    app.session_state["results"] = {}
+    app.run(timeout=20)
+    app.text_area[0].set_value("What is the waiting period?").run(timeout=20)
+    next(button for button in app.button if button.label == "Get an answer").click().run(timeout=20)
+
+    assert app.session_state["results"]["question"]["answer"] == "Ask Question: What is the waiting period?"
+    assert "summary" not in app.session_state["results"]
+
+
 def vars_safe(chunk):
     from dataclasses import asdict
     return asdict(chunk)

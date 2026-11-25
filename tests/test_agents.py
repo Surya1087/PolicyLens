@@ -63,13 +63,17 @@ def test_question_removes_statement_with_unverified_number():
 
 
 def test_summary_retrieves_multiple_facets():
-    llm = FakeLLM([{"items": []}])
+    llm = FakeLLM([{"items": [
+        {"topic": "Coverage and benefits", "statement": "The policy includes listed hospital benefits.", "citations": [{"id": "c1", "quote": "deductible is INR 5,000"}]},
+        {"topic": "Costs and limits", "statement": "A deductible applies.", "citations": [{"id": "c1", "quote": "deductible is INR 5,000"}]},
+    ]}])
     pipeline = Pipeline()
-    Router(pipeline, llm).run("Executive Summary", policy_id="p1")
+    result = Router(pipeline, llm).run("Executive Summary", policy_id="p1")
     from app.agents.summary_agent import SUMMARY_FACETS
     assert len(pipeline.calls) == len(SUMMARY_FACETS)
     assert {call[1] for call in pipeline.calls} == set(SUMMARY_FACETS)
     assert all(call[3] is False for call in pipeline.calls)
+    assert result["answer"].index("### Coverage and benefits") < result["answer"].index("### Costs and limits")
 
 
 def test_risk_scans_every_chunk_and_reports_partial_state():
