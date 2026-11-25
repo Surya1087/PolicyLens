@@ -126,6 +126,8 @@ def ingest(source, filename: str, slot: str) -> None:
             document = pipeline().ingest(source, filename=filename)
         st.session_state[slot] = document
         st.session_state.results = {}
+        if slot == "policy":
+            st.session_state["summary_pending"] = True
         st.success(f"Indexed {document.filename}: {len(document.pages)} pages, {len(document.chunks)} passages.")
     except PolicyLensError as exc:
         st.error(str(exc))
@@ -200,17 +202,25 @@ def main() -> None:
         middle.metric("Passages ready", len(policy.chunks))
         right.metric("Privacy", "Local index")
     enabled = bool(settings.groq_api_key and consent)
+    if st.session_state.get("summary_pending") and enabled:
+        st.session_state["summary_pending"] = False
+        analyze("Executive Summary", "summary", policy_id=policy.policy_id)
     if not enabled:
         st.info("To generate an answer, add your local Groq key and confirm the privacy consent in the sidebar. You can still inspect source pages.")
     tabs = st.tabs(["🧾 Quick summary", "💬 Ask a question", "🔎 Find things to review", "🏥 Check a bill", "⚖️ Compare policies", "📄 Read source pages"])
     with tabs[0]:
-        action_intro("Executive summary", "Get the key benefits, limits, and next steps in a quick overview.", "This is a scoped summary, not an exhaustive contract review.")
-        if st.button("Generate summary", disabled=not enabled, type="primary"):
+        action_intro(
+            "Executive summary",
+            "Your summary is generated automatically after indexing when Groq access and privacy consent are ready.",
+            "This is a scoped summary, not an exhaustive contract review.",
+        )
+        if st.button("Generate summary", disabled=not enabled or st.session_state.get("summary_pending", False), type="primary"):
+            st.session_state["summary_pending"] = False
             analyze("Executive Summary", "summary", policy_id=policy.policy_id)
         if "summary" in st.session_state.results:
             display_result(st.session_state.results["summary"], "summary")
     with tabs[1]:
-        action_intro("Ask a question", "Ask about benefits, exclusions, numbers, or what to do next.")
+        action_intro("Ask a question", "This is the second tab. Ask about benefits, exclusions, numbers, or what to do next.")
         question = st.text_area("Your question", placeholder="For example: Is there a waiting period for hospital treatment?", max_chars=2000, key="question")
         if st.button("Get an answer", disabled=not enabled or not question.strip(), type="primary"):
             analyze("Ask Question", "question", policy_id=policy.policy_id, query=question.strip())
