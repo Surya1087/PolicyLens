@@ -128,7 +128,7 @@ def action_intro(title: str, description: str, note: str | None = None) -> None:
 def analyze(route: str, result_key: str, **kwargs) -> None:
     st.session_state.results.pop(result_key, None)
     try:
-        with st.spinner("Running the local AI model. The first response can take a minute; keep this page open…"):
+        with st.spinner("Preparing your results. This may take a little while…"):
             result = Router(pipeline()).run(route, **kwargs)
         st.session_state.results[result_key] = result
     except PolicyLensError as exc:
@@ -165,7 +165,7 @@ def summary_panel(policy_id: str) -> None:
             finally:
                 st.session_state.pop("summary_job", None)
         else:
-            st.info("Your summary is being prepared locally in the background. You can ask a question or use another tab meanwhile.")
+            st.info("Putting your summary together. You can continue exploring the other sections.")
     if "summary" in st.session_state.results:
         display_result(st.session_state.results["summary"], "summary")
 
@@ -206,10 +206,9 @@ def main() -> None:
         if st.button("Use selected brochure", disabled=sample is None, use_container_width=True):
             ingest(sample, sample.name, "policy")
         st.caption("Digital text PDFs only · 25 MB maximum · Scanned images are not supported.")
-        with st.expander("Privacy & AI access"):
-            st.caption(f"Local AI model · {settings.ollama_model}")
-            st.info("AI generation runs locally through Ollama. Document text is not sent to a hosted AI provider.")
-            st.caption("Local embeddings, vector search, reranking, and generation require model downloads and sufficient device memory. No API key or provider quota is needed.")
+        with st.expander("Privacy & data processing"):
+            st.info("Your document stays on this device and is not sent to an external AI service.")
+            st.caption("Analysis may take a little longer on some devices.")
             delete_confirm = st.checkbox("I understand this permanently deletes local indexes.", key="delete_confirm")
             if st.button("Delete local PolicyLens data", disabled=not delete_confirm, use_container_width=True):
                 try:
@@ -254,7 +253,7 @@ def main() -> None:
     with tabs[0]:
         action_intro(
             "Executive summary",
-            "Your summary is generated automatically after indexing using the local Ollama model.",
+            "Your summary is generated automatically after indexing.",
             "This is a scoped summary, not an exhaustive contract review.",
         )
         if st.button("Generate summary", type="primary"):
